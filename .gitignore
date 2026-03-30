@@ -1,0 +1,30 @@
+# 1. 屏蔽所有
+loT_OTA_app/*
+loT_OTA_app_upgrade/*
+loT_OTA_bootloader/*
+
+# 2. 放行核心代码
+!loT_OTA_app/Abstract/
+!loT_OTA_app/User/
+!loT_OTA_app/Core/
+
+!loT_OTA_app_upgrade/Abstract/
+!loT_OTA_app_upgrade/User/
+!loT_OTA_app_upgrade/Core/
+
+!loT_OTA_bootloader/Core/
+
+# 3. 放行 CubeMX 配置文件
+!loT_OTA_app/*.ioc
+!loT_OTA_app_upgrade/*.ioc
+!loT_OTA_bootloader/*.ioc
+
+# 4. 放行 Keil 核心工程文件和启动汇编文件
+!loT_OTA_app/MDK-ARM/*.uvprojx
+!loT_OTA_app/MDK-ARM/startup_*.s
+
+!loT_OTA_app_upgrade/MDK-ARM/*.uvprojx
+!loT_OTA_app_upgrade/MDK-ARM/startup_*.s
+
+!loT_OTA_bootloader/MDK-ARM/*.uvprojx
+!loT_OTA_bootloader/MDK-ARM/startup_*.s
