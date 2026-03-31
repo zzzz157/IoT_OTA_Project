@@ -4,6 +4,10 @@
 #include "W25Q64.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "semphr.h"
+
+static SemaphoreHandle_t w25q_mutex=NULL;
+
 typedef struct
 {
 	const SPI_Device* spi_dev;
@@ -15,7 +19,6 @@ static int W25Q64_WriteEnable(const W25Q64_t* self)
 	w25q_config* cfg=self->W25Q_config;
 	cfg->spi_dev->SetCS(cfg->spi_dev,GPIO_PIN_RESET);
 	if(cfg->spi_dev->Transmit(cfg->spi_dev,&txdata,1,10)!=HAL_OK) return 0;
-	//for (volatile int delay = 0; delay < 200; delay++) { __NOP(); }
 	cfg->spi_dev->SetCS(cfg->spi_dev,GPIO_PIN_SET);
 	return 1;
 }
@@ -54,13 +57,20 @@ static int W25Q64_WaitBusy(const W25Q64_t* self)
 static void W25Q64_Init(W25Q64_t* self)
 {
 	w25q_config* cfg=self->W25Q_config;
+	if(w25q_mutex==NULL) w25q_mutex=xSemaphoreCreateMutex();
 	cfg->spi_dev->Init(cfg->spi_dev);
 	self->DevID=W25Q64GetID(self);
 }
 static int W25Q64_PagePrograme(const W25Q64_t* self,uint32_t address,uint8_t *data,uint16_t size)
 {
+	uint8_t state=1;
 	w25q_config* cfg=self->W25Q_config;
-	if(W25Q64_WriteEnable(self)==0)  return 0;
+	xSemaphoreTake(w25q_mutex,portMAX_DELAY);
+	if(W25Q64_WriteEnable(self)==0)  
+	{
+		state=0;
+		goto exit;
+	}
 	static uint8_t tx_buf[W25Q64_PAGE_LEN+4];
 	tx_buf[0] = W25Q64_PAGE_PROGRAM;
 	tx_buf[1] = address >> 16;
@@ -71,39 +81,74 @@ static int W25Q64_PagePrograme(const W25Q64_t* self,uint32_t address,uint8_t *da
 	if(cfg->spi_dev->Transmit(cfg->spi_dev,tx_buf,size+4,1000)!=HAL_OK)
 	{
 		cfg->spi_dev->SetCS(cfg->spi_dev,GPIO_PIN_SET);
-		return 0;
-	}		
-	//for (volatile int delay = 0; delay < 200; delay++) { __NOP(); }
+		state=0;
+		goto exit;
+	}
 	cfg->spi_dev->SetCS(cfg->spi_dev,GPIO_PIN_SET);
-	return W25Q64_WaitBusy(self);
+	if(W25Q64_WaitBusy(self)==0)
+	{
+		state=0;
+		goto exit;
+	}
+exit:
+	cfg->spi_dev->SetCS(cfg->spi_dev,GPIO_PIN_SET);
+	xSemaphoreGive(w25q_mutex);
+	return state;
 }
 /* Erase 4KB */
 static int W25Q64_SectorErase(const W25Q64_t* self,uint32_t address)
 {
+	uint8_t state=1;
 	w25q_config* cfg=self->W25Q_config;
-	if(W25Q64_WriteEnable(self)==0) return 0;
+	xSemaphoreTake(w25q_mutex,portMAX_DELAY);
+	if(W25Q64_WriteEnable(self)==0)
+	{
+		state=0;
+		goto exit;
+	}
 	uint8_t txdata[4]={W25Q64_SECTOR_ERASE_4KB,address>>16,address>>8,address};
 	cfg->spi_dev->SetCS(cfg->spi_dev,GPIO_PIN_RESET);
-	if(cfg->spi_dev->Transmit(cfg->spi_dev,txdata,4,100)!=HAL_OK) return 0;
-	//for (volatile int delay = 0; delay < 200; delay++) { __NOP(); }
+	if(cfg->spi_dev->Transmit(cfg->spi_dev,txdata,4,100)!=HAL_OK)
+	{
+		state=0;
+		goto exit;
+	}
 	cfg->spi_dev->SetCS(cfg->spi_dev,GPIO_PIN_SET);
-	return W25Q64_WaitBusy(self);
+	if(W25Q64_WaitBusy(self)==0) 
+	{
+		state=0;
+		goto exit;
+	}
+exit:
+	cfg->spi_dev->SetCS(cfg->spi_dev,GPIO_PIN_SET);
+	xSemaphoreGive(w25q_mutex);
+	return state;
 }
 static int W25Q64_ReadDatas(const W25Q64_t* self,uint32_t address,uint8_t *data,uint16_t size)
 {
+	uint8_t state=1;
 	w25q_config* cfg=self->W25Q_config;
+	xSemaphoreTake(w25q_mutex,portMAX_DELAY);
 	uint8_t txdata[4]={W25Q64_READ_DATA,address>>16,address>>8,address};
 	cfg->spi_dev->SetCS(cfg->spi_dev,GPIO_PIN_RESET);
-	if(cfg->spi_dev->Transmit(cfg->spi_dev,txdata,4,100)!=HAL_OK) return 0;
-	if(cfg->spi_dev->Receive(cfg->spi_dev,data,size,1000)!=HAL_OK) return 0;
+	if(cfg->spi_dev->Transmit(cfg->spi_dev,txdata,4,100)!=HAL_OK)
+	{
+		state=0;
+		goto exit;
+	}
+	if(cfg->spi_dev->Receive(cfg->spi_dev,data,size,1000)!=HAL_OK)
+	{
+		state=0;
+		goto exit;
+	}
+exit:
 	cfg->spi_dev->SetCS(cfg->spi_dev,GPIO_PIN_SET);
-	return 1;
+	xSemaphoreGive(w25q_mutex);
+	return state;
 }
-
 static w25q_config w25q_cfg={
 	.spi_dev=&HardSPI2_Obj,
 };
-
 W25Q64_t W25QHandle_t={
 	.Init=W25Q64_Init,
 	.WritePage=W25Q64_PagePrograme,
