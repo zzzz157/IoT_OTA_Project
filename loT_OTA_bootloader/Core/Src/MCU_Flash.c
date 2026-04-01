@@ -1,4 +1,5 @@
 #include "main.h"
+#include "MCU_Flash.h"
 #include <string.h>
 
 static uint32_t GetSector(uint32_t Address)
@@ -48,7 +49,7 @@ void MCU_Flash_Erase(uint32_t start_addr, uint32_t len)
 	HAL_FLASHEx_Erase(&EraseInitStruct, &SectorError);
     HAL_FLASH_Lock();
 }
-uint8_t MCU_Flash_Write(uint32_t addr, uint8_t *data, uint32_t len) 
+uint8_t MCU_Flash_Write(uint32_t addr, uint8_t *data, uint32_t len)
 {
 	HAL_StatusTypeDef status;
     HAL_FLASH_Unlock(); 
@@ -67,5 +68,25 @@ uint8_t MCU_Flash_Write(uint32_t addr, uint8_t *data, uint32_t len)
         }
     }
     HAL_FLASH_Lock();
+	return 1;
+}
+int MCU_Flash_Read(uint32_t start_addr, uint8_t *data, uint32_t len)
+{
+	if(data==NULL||len==0) return 0;
+	if(start_addr<FLASH_START_ADDR||(start_addr+len-1)>FLASH_END_ADDR) return 0;
+	uint32_t word_cnt=len/4;
+	for(uint32_t i=0;i<word_cnt;i++)
+	{
+		uint32_t ptr1=*(volatile uint32_t*)(start_addr+4*i);
+		for(volatile uint8_t j=0;j<4;j++)
+		{
+			uint8_t* ptr2=(uint8_t*)&ptr1;
+			data[4*i+j]=ptr2[j];
+		}
+	}
+	for(uint8_t i=0;i<(len-word_cnt*4);i++)
+	{
+		data[word_cnt*4+i]=*(volatile uint8_t*)(start_addr+word_cnt*4+i);
+	}
 	return 1;
 }

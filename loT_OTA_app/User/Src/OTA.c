@@ -10,7 +10,23 @@
 #include <string.h>
 #include <stdlib.h>
 static W25Q64_t* Flash_Device=NULL;
-
+/* OTA upgrade flag manage */
+static int OTA_Write_Flash_Flag(Boot_Flag flag)
+{
+	if(Flash_Device->SectorErase(Flash_Device,OTA_FLAG_ADDR & 0xFFFFF000)!=1)
+	{
+		LOG_DEBUG("OTA Flag Erase ERROR");
+		return 0;
+	}
+	if(Flash_Device->WritePage(Flash_Device,OTA_FLAG_ADDR,(uint8_t*)&flag,
+		sizeof(flag))!=1)
+	{
+		LOG_DEBUG("OTA Flag Write ERROR");
+		return 0;
+	}
+	return 1;
+}
+/* CRC check out */
 static uint32_t crc32_calculate(uint32_t crc, const uint8_t *buf, uint32_t len) 
 {
     crc ^= 0xFFFFFFFF;
@@ -22,6 +38,54 @@ static uint32_t crc32_calculate(uint32_t crc, const uint8_t *buf, uint32_t len)
     }
     return crc ^ 0xFFFFFFFF;
 }
+/* new firmware check out */
+static header_t head;
+static int OTA_Download_Check(uint32_t ota_head_addr,uint32_t ota_head_len)
+{
+	/* read head */
+	Flash_Device->ReadDatas(Flash_Device,ota_head_addr,(uint8_t*)&head,sizeof(header_t));
+	/* deal head */
+	if(IH_MAGIC!=head.ih_magic)
+	{
+		LOG_DEBUG("head's magic error");
+		OTA_Write_Flash_Flag(BOOT_CORRUPTED_FIRMWARE);
+		return 0;
+	}
+	/* app head CRC */
+	uint32_t correct_crc=head.ih_hcrc;
+	head.ih_hcrc=0;
+	uint32_t new_crc=crc32_calculate(0, (uint8_t*)&head,sizeof(header_t));
+	if(new_crc!=correct_crc)
+	{
+		LOG_DEBUG("head's crc error");
+		OTA_Write_Flash_Flag(BOOT_CORRUPTED_FIRMWARE);
+		return 0;
+	}
+	/* app data CRC */
+	uint32_t calc_dcrc = 0;
+    uint8_t buf[256];
+    uint32_t check_len = 0;
+	uint32_t content_length=head.ih_size;
+	while(check_len < content_length)
+	{
+        uint32_t remain = content_length - check_len;
+        uint16_t read_size = (remain > 256) ? 256 : remain;
+        Flash_Device->ReadDatas(Flash_Device,ota_head_addr+ota_head_len+check_len,buf,read_size);
+        calc_dcrc = crc32_calculate(calc_dcrc, buf, read_size);
+        check_len += read_size;
+    }
+	if(calc_dcrc!=head.ih_dcrc)
+	{
+		LOG_DEBUG("data's crc error");
+		LOG_DEBUG("expect crc:%d\r\n",head.ih_dcrc);
+		LOG_DEBUG("calc crc:%d\r\n",calc_dcrc);
+		OTA_Write_Flash_Flag(BOOT_CORRUPTED_FIRMWARE);
+		return 0;
+	}
+	/* success */
+	return 1;
+}
+
 static void OTA_Init(W25Q64_t* flash_dev)
 {
 	Flash_Device=flash_dev;
@@ -214,7 +278,6 @@ void OTA_Task(void* arg)
                 fw_crc = 0;
                 last_erased_sector = 0xFFFFFFFF;
             }
-			
 			uint32_t chunk_received = 0;
 			while (chunk_received < current_chunk_size) 
             {
@@ -249,20 +312,22 @@ void OTA_Task(void* arg)
 		}
 		if (content_length != 0xFFFFFFFF && received_len == content_length)
 		{
-			uint32_t flag=OTA_UPGRADE_DOING;
-			if(Flash_Device->SectorErase(Flash_Device,OTA_FLAG_ADDR & 0xFFFFF000)!=1)
+			if(OTA_Download_Check(OTA_HEAD_START_ADDR,OTA_HAED_LENGTH)==1)
 			{
-				LOG_DEBUG("OTA Flag SectorErase ERROR");
+				if(OTA_Write_Flash_Flag(BOOT_FLAG_NEED_UPDATE)==1)
+				{
+					/* restart */
+					LOG_DEBUG("OTA: Download Success! Rebooting in 1s...");
+					vTaskDelay(pdMS_TO_TICKS(1000));
+					NVIC_SystemReset();
+				}
 			}
-			if(Flash_Device->WritePage(Flash_Device,OTA_FLAG_ADDR,(uint8_t*)&flag,
-				sizeof(flag))!=1)
+			else
 			{
-				LOG_DEBUG("OTA Flag Write ERROR");
+				need_reconnect = 1;
+				LOG_DEBUG("Download Firmware check error");
+				continue;
 			}
-			/* restart */
-			LOG_DEBUG("OTA: Download Success! Rebooting in 1s...");
-			vTaskDelay(pdMS_TO_TICKS(1000));
-			NVIC_SystemReset();
 		}
 		else
 		{

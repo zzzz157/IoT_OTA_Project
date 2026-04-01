@@ -1,12 +1,12 @@
 #include "usart.h"
-
+#include <string.h>
 void put_char(char c)
 {
 	HAL_UART_Transmit(&huart6,(uint8_t*)&c,1,10);
 }
-void put_str(char* str,uint8_t len)
+void put_str(char* str)
 {
-	HAL_UART_Transmit(&huart6,(uint8_t*)str,len,10);
+	HAL_UART_Transmit(&huart6,(uint8_t*)str,strlen(str),10);
 }
 void put_hex(uint32_t val,uint8_t len)
 {

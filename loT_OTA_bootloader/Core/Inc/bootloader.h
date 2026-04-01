@@ -1,19 +1,17 @@
-#ifndef __OTA_H
-#define __OTA_H
-#include <stdint.h>
-#include "W25Q64.h"
+#ifndef _BOOTLOADER__H
+#define _BOOTLOADER__H
 
 #define OTA_HAED_LENGTH   	 0x200
 #define OTA_FLAG_ADDR        BOOT_FLAGS_ADDR
-#define OTA_HEAD_START_ADDR  OTA_DOWNLOAD
-#define OTA_APP_START_ADDR 	 (OTA_DOWNLOAD+OTA_HAED_LENGTH)
-#define OTA_DOWN_RXBUF_LEN   1024
+#define OTA_DOWN_HEAD_ADDR   OTA_DOWNLOAD
+#define OTA_APP_DOWN_ADDR 	 (OTA_DOWNLOAD+OTA_HAED_LENGTH)
+#define OTA_BACK_HEAD_ADDR   OTA_BACKUP
+#define OTA_APP_BACK_ADDR 	 (OTA_BACKUP+OTA_HAED_LENGTH)
 
-#define APP_LOAD_ADDRESS 	 0x08040000
-#define APP_EP_ADDRESS 	 	 0x08040200
+#define IH_MAGIC 			0x27051956
+#define IH_NMLEN 			32
 
-#define IH_MAGIC 			 0x27051956
-#define IH_NMLEN 			 32
+#define ONCE_RELOCATE_MAX_LEN 512
 
 typedef enum
 {
@@ -23,12 +21,6 @@ typedef enum
 	BOOT_FLAG_TESTING=0x33333333,
 	BOOT_FLAG_ROLLED_BACK=0x44444444,
 }Boot_Flag;
-
-typedef struct {
-    uint8_t ip[4];
-    uint16_t port;
-    char path[64];
-}OTA_Config_t;
 
 #pragma pack(push, 1)
 typedef struct image_header{
@@ -47,7 +39,9 @@ typedef struct image_header{
 }header_t;
 #pragma pack(pop)
 
-
-void OTA_Task(void* arg);
+uint32_t bootloader_init(W25Q64_t* ex_handle);
+void OTA_Jump_TO_Normal_APP(uint32_t app_ep_addr);
+void OTA_Jump_TO_Upgrade_APP(uint32_t app_head_addr,uint32_t app_head_len);
+void OTA_Jump_TO_BACK_APP(uint32_t app_head_addr,uint32_t app_head_len);
 
 #endif

@@ -13,7 +13,8 @@ int my_block_dev_read(const struct lfs_config *c, lfs_block_t block,
             lfs_off_t off, void *buffer, lfs_size_t size)
 {
 	if(lfs_w26q_t==NULL) lfs_w25q_init();
-	if(lfs_w26q_t->ReadDatas(lfs_w26q_t,c->block_size*block+off,(uint8_t*)buffer,size)==0)
+	uint32_t addr = LFS_FLASH_OFFSET + (block * c->block_size) + off;
+	if(lfs_w26q_t->ReadDatas(lfs_w26q_t,addr,(uint8_t*)buffer,size)==0)
 	{
 		return LFS_ERR_IO;
 	}
@@ -24,7 +25,8 @@ int my_block_dev_prog(const struct lfs_config *c, lfs_block_t block,
             lfs_off_t off, const void *buffer, lfs_size_t size)
 {
 	if(lfs_w26q_t==NULL) lfs_w25q_init();
-	if(lfs_w26q_t->WritePage(lfs_w26q_t,c->block_size*block+off,(uint8_t*)buffer,size)==0)
+	uint32_t addr = LFS_FLASH_OFFSET + (block * c->block_size) + off;
+	if(lfs_w26q_t->WritePage(lfs_w26q_t,addr,(uint8_t*)buffer,size)==0)
 	{
 		return LFS_ERR_IO;
 	}
@@ -34,7 +36,8 @@ int my_block_dev_prog(const struct lfs_config *c, lfs_block_t block,
 int my_block_dev_erase(const struct lfs_config *c, lfs_block_t block)
 {
 	if(lfs_w26q_t==NULL) lfs_w25q_init();
-	if(lfs_w26q_t->SectorErase(lfs_w26q_t,block*c->block_size)==0)
+	uint32_t addr = LFS_FLASH_OFFSET + (block * c->block_size);
+	if(lfs_w26q_t->SectorErase(lfs_w26q_t,addr)==0)
 	{
 		return LFS_ERR_IO;
 	}
@@ -55,7 +58,7 @@ const struct lfs_config lfs_cfg={
 	
 	.read_size=W25Q64_PAGE_LEN,
 	.prog_size=W25Q64_PAGE_LEN,
-	.block_count=2048,
+	.block_count=(W25Q64_TOTAL_SIZE-LFS_FLASH_OFFSET)/W25Q64_Sector_LEN,
 	.block_cycles=500,
 	.cache_size=W25Q64_PAGE_LEN,
 	.block_size=W25Q64_Sector_LEN,
