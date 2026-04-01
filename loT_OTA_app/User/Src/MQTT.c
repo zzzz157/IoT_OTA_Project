@@ -12,6 +12,7 @@
 #include "Broker.h"
 #include <string.h>
 extern volatile uint8_t g_mqtt_ping_waiting;
+extern volatile uint32_t g_mqtt_heartbeat;
 volatile int g_mqtt_sockfd = -1;
 static QueueHandle_t xMQTTQue_HealthData;
 /* 发布 */
@@ -41,6 +42,7 @@ void MQTT_Public_Task(void* arg)
 				
 			}
 		}
+		g_mqtt_heartbeat=xTaskGetTickCount();
 		vTaskDelay(pdMS_TO_TICKS(3000));
 	}
 }

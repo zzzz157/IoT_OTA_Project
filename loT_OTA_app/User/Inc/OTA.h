@@ -47,7 +47,7 @@ typedef struct image_header{
 }header_t;
 #pragma pack(pop)
 
-
+int OTA_Write_Flash_Flag(Boot_Flag flag);
 void OTA_Task(void* arg);
 
 #endif

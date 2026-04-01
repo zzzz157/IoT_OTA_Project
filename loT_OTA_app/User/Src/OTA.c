@@ -11,7 +11,7 @@
 #include <stdlib.h>
 static W25Q64_t* Flash_Device=NULL;
 /* OTA upgrade flag manage */
-static int OTA_Write_Flash_Flag(Boot_Flag flag)
+int OTA_Write_Flash_Flag(Boot_Flag flag)
 {
 	if(Flash_Device->SectorErase(Flash_Device,OTA_FLAG_ADDR & 0xFFFFF000)!=1)
 	{
