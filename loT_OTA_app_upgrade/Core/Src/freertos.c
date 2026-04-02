@@ -32,6 +32,7 @@
 #include "AT_Command.h"
 #include "MQTT.h"
 #include "OTA.h"
+#include "Monitor.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -56,17 +57,7 @@
 	TaskHandle_t xGUI_TaskHandler;
 	TaskHandle_t xMQTT_TaskHandler;
 	TaskHandle_t xOTA_TaskHandler;
-	TaskHandle_t xLED_TaskHandler;
-void LED_Task(void* arg)
-{
-	LOG_DEBUG("LED");
-	while(1)
-	{
-		HAL_GPIO_TogglePin(GPIOC,GPIO_PIN_12);
-		vTaskDelay(1000);
-		LOG_DEBUG("LED");
-	}
-}
+	TaskHandle_t xMonitor_TaskHandler;
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -118,10 +109,11 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-    xTaskCreate(LED_Task,"LED_Task",128,NULL,1,&xLED_TaskHandler);
-	//xTaskCreate(MAX30102_Task,"MAX30102_Task",256,NULL,11,&xMAX_TaskHandle_t);
-	//xTaskCreate(MQTT_Task,"MQTT_Task",256,NULL,10,&xMQTT_TaskHandler);
-	//xTaskCreate(OTA_Task,"OTA_Task",512,NULL,6,&xOTA_TaskHandler);
+  
+	xTaskCreate(MAX30102_Task,"MAX30102_Task",256,NULL,11,&xMAX_TaskHandle_t);
+	xTaskCreate(MQTT_Task,"MQTT_Task",256,NULL,10,&xMQTT_TaskHandler);
+	xTaskCreate(OTA_Task,"OTA_Task",512,NULL,6,&xOTA_TaskHandler);
+	xTaskCreate(Monitor_Task,"Monitor_Task",128,NULL,4,&xMonitor_TaskHandler);
 	//xTaskCreate(GUI_Task,"GUI_Task",1280,NULL,2,&xGUI_TaskHandler);
 	//xTaskCreate(Modbus_Task,"modbus",256,NULL,6,&g_ModbusHandle_t);
 

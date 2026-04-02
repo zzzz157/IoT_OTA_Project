@@ -99,7 +99,6 @@ int main(void)
   MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
 	put_str("bootloader\r\n");
-	
 	uint32_t boot_flag=bootloader_init(&W25QHandle_t);
 	/* prepare to upgrade */
 	switch(boot_flag)

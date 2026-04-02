@@ -21,5 +21,6 @@ typedef struct SPI_Device_Obj
 extern const SPI_Device HardSPI1_Obj;
 extern const SPI_Device HardSPI2_Obj;
 extern const SPI_Device HardSPI1_DMA_Obj;
+extern const SPI_Device HardSPI2_DMA_Obj;
 
 #endif

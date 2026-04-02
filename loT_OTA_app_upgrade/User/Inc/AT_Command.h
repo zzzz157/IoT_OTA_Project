@@ -45,7 +45,6 @@ extern AT_Device at_esp8266;
 
 void AT_Recv_Task(void* arg);
 
-
 AT_SocketType Get_SockType_FromATDev(AT_Device* at_dev,int sockfd);
 StreamBufferHandle_t* Get_Stream_FromATDev(AT_Device* at_dev,int sockfd);
 

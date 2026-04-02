@@ -106,6 +106,15 @@ const SPI_Device HardSPI1_DMA_Obj={
 	.SetCS=HardSPI_SetCS,
 	.spi_config=&SPI1_Hardware,
 };
+//HardSPI2_DMA
+const SPI_Device HardSPI2_DMA_Obj={
+	.Init=HardSPI_Init_DMA,
+	.Transmit=HardSPI_Transmit_DMA,
+	.Receive=HardSPI_Receive_DMA,
+	.TransmitReceive=HardSPI_TransmitReceive_DMA,
+	.SetCS=HardSPI_SetCS,
+	.spi_config=&SPI2_Hardware,
+};
 						//========Hardware_SPI=====//
 static void HardSPI_SetCS(const SPI_Device* self,GPIO_PinState PinState)
 {

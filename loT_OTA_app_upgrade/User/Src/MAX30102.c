@@ -89,6 +89,7 @@ HAL_StatusTypeDef MAX30102_ReadData(uint32_t *RedData, uint32_t *IrData)
   * @param
   * @retval 无
   */
+extern volatile uint32_t g_max30102_heartbeat;
 static SemaphoreHandle_t g_xMAX30102AcquireSemaphore_t;
 static SemaphoreHandle_t g_xMAX30102CalculateSemaphore_t;
 static PPG_FIFO_t Ring_Buffer;
@@ -137,6 +138,7 @@ void vMAX30102_CalculateTask(void* arg)
 	while(1)
 	{
 		xSemaphoreTake(g_xMAX30102CalculateSemaphore_t,portMAX_DELAY);
+		g_max30102_heartbeat=xTaskGetTickCount();
 		FIFO_PeekWindow(&Ring_Buffer,work_ir,work_red,BUFFER_SIZE);
 		maxim_heart_rate_and_oxygen_saturation(work_ir, BUFFER_SIZE, work_red, &n_spo2
 			, &ch_spo2_valid, &n_heart_rate, &ch_hr_valid);

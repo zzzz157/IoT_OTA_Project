@@ -99,7 +99,8 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
-
+	LOG_DEBUG("new app into HardFault_Handle");
+	LOG_DEBUG("jump to back app");
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {

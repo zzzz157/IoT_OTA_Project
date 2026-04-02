@@ -110,7 +110,7 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   
-	//xTaskCreate(MAX30102_Task,"MAX30102_Task",256,NULL,11,&xMAX_TaskHandle_t);
+	xTaskCreate(MAX30102_Task,"MAX30102_Task",256,NULL,11,&xMAX_TaskHandle_t);
 	xTaskCreate(MQTT_Task,"MQTT_Task",256,NULL,10,&xMQTT_TaskHandler);
 	xTaskCreate(OTA_Task,"OTA_Task",512,NULL,6,&xOTA_TaskHandler);
 	xTaskCreate(Monitor_Task,"Monitor_Task",128,NULL,4,&xMonitor_TaskHandler);

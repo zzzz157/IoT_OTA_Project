@@ -31,18 +31,24 @@
 
 #define W25Q64_DUMMY_BYTE							0xFF
 
-
+#define W25Q64_TOTAL_SIZE    						(8*1024*1024) /* 8MB */
 #define W25Q64_PAGE_LEN								0x100  /* 256  Byte */
 #define W25Q64_Sector_LEN							0x1000 /* 4096 Byte */
+
+/* flash management */
+#define OTA_DOWNLOAD								0x000000 /* new .bin */
+#define OTA_BACKUP									0x100000 /* old .bin */
+#define BOOT_FLAGS_ADDR								0x200000 /* old .bin */
+#define LFS_FLASH_OFFSET 							0x210000 /* littlefs offset */
 
 typedef struct _W25Q64_t W25Q64_t;
 typedef struct _W25Q64_t
 {
 	uint16_t DevID;
 	void (*Init)(W25Q64_t* self);
-	void (*WritePage)(const W25Q64_t* self,uint32_t address,uint8_t *data,uint16_t size);
-	void (*SectorErase)(const W25Q64_t* self,uint32_t address);
-	void (*ReadDatas)(const W25Q64_t* self,uint32_t address,uint8_t *data,uint16_t size);
+	int (*WritePage)(const W25Q64_t* self,uint32_t address,uint8_t *data,uint16_t size);
+	int (*SectorErase)(const W25Q64_t* self,uint32_t address);
+	int (*ReadDatas)(const W25Q64_t* self,uint32_t address,uint8_t *data,uint16_t size);
 	
 	void* W25Q_config;
 }W25Q64_t;

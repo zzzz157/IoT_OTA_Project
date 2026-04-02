@@ -1,0 +1,1312 @@
+« [DEBUG] [../Core/Src/main.c:118] Task start
+[DEBUG] [..\User\Src\MQTT.c:202] MQTT Task
+[DEBUG] [..\User\Src\AT_Command.c:224] AT_Recv_Task
+[DEBUG] [..\User\Src\OTA.c:138] OTA start
+[DEBUG] [..\User\Src\ESP8266.c:52] init Start
+[DEBUG] [..\User\Src\Monitor.c:15] Monitor Task Started
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+0,CLOSED
+WIFI DISCONNECT
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+ ets Jan  8 2013,rst cause:2, boot mode:(3,7)
+
+load 0x40100000, len 2592, room 16 
+
+[DEBUG] [..\User\Src\MAX30102.c:199] MAX init Cplt
+[DEBUG] [..\User\Src\MAX30102.c:98] MAX_Acq start
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: tail 0
+chksum 0xf3
+load 0x3ffe8000, len 764, room 8 
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: tail 4
+chksum 0x92
+load 0x3ffe82fc, len 676, room 4 
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: tail 0
+chksum 0x22
+csum 0x22
+
+2nd boot version : 1.7(5d6f877)
+SPI Speed : 40MHz
+SPI Mode : DOUT
+SPI Flash Size & Map: 8Mbit(512KB+512KB)
+jump to run user1 @ 1000
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: lrOK
+0,CLOSED
+WIFI DISCONNECT
+
+ ets Jan  8 2013,rst cause:2, boot mode:(3,7)
+
+load 0x40100000, len 2592, room 16 
+tail 0
+chksum 0xf3
+load 0x3ffe8000, len 764, room 8 
+tail 4
+chksum 0x92
+load 0x3ffe82fc, len 676, room 4 
+tail 0
+chksum 0x22
+csum 0x22
+
+2nd boot version : 1.7(5d6f877)
+SPI Speed : 40MHz
+SPI Mode : DOUT
+SPI Flash Size & Map: 8Mbit(512KB+512KB)
+jump to run user1 @ 1000
+
+�
+[DEBUG] [..\User\Src\AT_Command.c:358] AT recv idx overflow[DEBUG] [..\User\Src\AT_Command.c:237] RX: �h�K
+0,CLOSED
+WIF[DEBUG] [..\User\Src\AT_Command.c:237] RX: lrK
+0,CLOSED
+WIFI DISCONNECT
+
+ ets Jan  8 2013,rst cause:2, boot mode:(3,7)
+
+load 0x40100000, len 2592, room 16 
+tail 0
+chksum 0xf3
+load 0x3ffe8000, len 764, room 8 
+tail 4
+chksum 0x92
+load 0x3ffe82fc, len 676, room 4 
+tail 0
+chksum 0x22
+csum 0x22
+
+2nd boot version : 1.7(5d6f877)
+SPI Speed : 40MHz
+SPI Mode : DOUT
+SPI Flash Size & Map: 8Mbit(512KB+512KB)
+jump to run user1 @ 1000
+
+�
+[DEBUG] [..\User\Src\AT_Command.c:358] AT recv idx overflow237] RX: 
+Ai-Thinker Technology Co. Ltd.
+
+ready
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: ATE0
+
+OK
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: WIFI CONNECTED
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: WIFI GOT IP
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: WIFI DISCONNECT
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: WIFI CONNECTED
+
+[DEBUG] [..\User\Src\MAX30102.c:171] Error Heath Public
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: WIFI GOT IP
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+
+[DEBUG] [..\User\Src\MQTT.c:103] init OK
+[DEBUG] [..\User\Src\MQTT.c:112] socket OK
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 0,CONNECT
+
+OK
+
+[DEBUG] [..\User\Src\MQTT.c:121] connect OK
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 29 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
+[DEBUG] [..\User\Src\MQTT.c:125] MQTT Connect Packet Sent!
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 15 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,0,4: 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 16 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,0,5:�
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,0,5:�
+[DEBUG] [..\User\Src\MQTT.c:129] Subscribed to stm32
+[DEBUG] [..\User\Src\MQTT.c:147]  
+[DEBUG] [..\User\Src\MQTT.c:147] �
+[DEBUG] [..\User\Src\MQTT.c:147] �
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,0,56:06
+[DEBUG] [..\User\Src\MQTT.c:147] 06
+[DEBUG] [..\User\Src\MQTT.c:64] ota
+[DEBUG] [..\User\Src\MQTT.c:70] OTA:10.218.29.220:8000:/app_with_header.bin
+[DEBUG] [..\User\Src\MQTT.c:73] ota strncmp
+[DEBUG] [..\User\Src\MQTT.c:78] ota sscanf
+[DEBUG] [..\User\Src\MQTT.c:85] OTA Send Broker
+[DEBUG] [..\User\Src\OTA.c:148] OTA upgrade start to run
+[DEBUG] [..\User\Src\OTA.c:176] OTA: Connecting to HTTP Server...
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 1,CONNECT
+
+OK
+
+[DEBUG] [..\User\Src\OTA.c:186] OTA: Connecting Successfull
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 142 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,250:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:46:58 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 0-1023/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\MAX30102.c:171] Error Heath Public
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:V'�$���iP�
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 1024 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 145 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,253:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:46:59 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 1024-2047/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
++IPD,1,1024:Kh�� �� ��O`	�O�P
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 2048 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 145 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,253:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:46:59 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 2048-3071/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024: �
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: ��i��GѸ�
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 3072 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 145 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,253:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:46:59 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 3072-4095/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:@
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 4096 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 145 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,253:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:46:59 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 4096-5119/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
++IPD,1,1024:G�9H�j����@�Q"�)�D���
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 5120 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 145 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,253:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:46:59 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 5120-6143/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:*	���*�*��j�
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 6144 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 145 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,253:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:00 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 6144-7167/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:`��5���4������
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 7168 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 145 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,253:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:00 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 7168-8191/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
++IPD,1,1024:�o�r%Ja���C��"ho�
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 8192 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 145 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,253:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:00 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 8192-9215/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:�`��� hhA�`%d  ��=
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: hA�QA` hAi�i
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 9216 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 146 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,254:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:00 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 9216-10239/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024: hAhA�
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 10240 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:01 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 10240-11263/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
++IPD,1,1024:��	h���������	QE� ���� hih
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 11264 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:01 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 11264-12287/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:����F;�GF��`
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: �`h������a���PP F
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 12288 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:01 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 12288-13311/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:�Ѡh������F��P
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 13312 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:01 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 13312-14335/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
++IPD,1,1024:��O�
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 14336 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:01 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 14336-15359/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
++IPD,1,1024:
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: @ial��	
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 15360 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:02 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 15360-16383/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:�� p���@P F
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 16384 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:02 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 16384-17407/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
++IPD,1,1024:���� ��
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 17408 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:02 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 17408-18431/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:� -Д�> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: b F��z� l�����=`%dAi�CI�
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 18432 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:02 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 18432-19455/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 19456 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:02 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 19456-20479/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
++IPD,1,1024: F
+�
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 20480 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:03 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 20480-21503/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:!iA� !a s ����@i�� �� h.
+Ѐi%�
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 21504 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:03 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 21504-22527/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:(Ud9F.Ud(��i��
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 22528 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:03 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 22528-23551/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
++IPD,1,1024:9
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 23552 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:03 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 23552-24575/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:Task
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: �Aa�a�ab����
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 24576 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:03 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 24576-25599/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\MAX30102.c:171] Error Heath Public
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 25600 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:04 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 25600-26623/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
++IPD,1,1024:iF�.�
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 26624 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:04 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 26624-27647/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: d 
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 27648 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:04 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 27648-28671/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:&�#����ʠ��8F�,����
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 28672 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:04 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 28672-29695/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:nload!
+
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 29696 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:05 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 29696-30719/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: �p�F!
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 30720 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:05 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 30720-31743/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:@��|h�yp�#���
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 31744 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:06 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 31744-32767/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
++IPD,1,1024:"��A�
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 32768 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:06 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 32768-33791/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:P h
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: �G h
+#"EhiF�G�
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 33792 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:06 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 33792-34815/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:���2�� �
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 34816 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:06 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 34816-35839/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
++IPD,1,1024:������i�����0`
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 35840 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:07 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 35840-36863/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 36864 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:07 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 36864-37887/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 37888 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:07 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 37888-38911/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:E�O��8@F�
+FA��
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 38912 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:08 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 38912-39935/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:7�!h���AH	
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 39936 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:08 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 39936-40959/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:XPRFYF8F
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 40960 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:08 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 40960-41983/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
++IPD,1,1024:�п�O���o����O���o���
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 41984 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:09 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 41984-43007/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:IF h��h�
+[DEBUG] [..\User\Src\MAX30102.c:171] Error Heath Public
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: �� ������
+ 
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 43008 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:09 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 43008-44031/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:���'�I(�
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 44032 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:09 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 44032-45055/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
++IPD,1,1024:�P �����O���o���,Ix�� px��
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 45056 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:09 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 45056-46079/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
++IPD,1,1024:������O���o��k�k�B�/�
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: �@��E
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 46080 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:09 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 46080-47103/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:����
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 47104 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:10 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 47104-48127/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
++IPD,1,1024:o���P �����O���o���-��AF�FF&��F��t��`m8`��X
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 48128 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:10 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 48128-49151/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:�l�b��8
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: hT��
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 49152 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:10 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 49152-50175/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,1024:
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 50176 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,255:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:10 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 50176-51199/52048
+Content-Length: 1024
+Connection: keep-alive
+
+
++IPD,1,1024:
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 51200 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+OK
+> 
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+Recv 147 bytes
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
+SEND OK
+
++IPD,1,254:HTTP/1.1 206 Partial Content
+Server: SimpleHTTP/0.6 Python/3.13.3
+Date: Thu, 02 Apr 2026 08:47:10 GMT
+Content-Type: application/octet-stream
+Accept-Ranges: bytes
+Content-Range: bytes 51200-52047/52048
+Content-Length: 848
+Connection: keep-alive
+
+
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 
++IPD,1,848:@@
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: ����@
+[DEBUG] [..\User\Src\OTA.c:305] OTA Progress: 52048 / 52048
+[DEBUG] [..\User\Src\AT_Command.c:237] RX: 1,CLOSED
+
+OK
+
+[DEBUG] [..\User\Src\OTA.c:320] OTA: Download Success! Rebooting in 1s...
+bootloader

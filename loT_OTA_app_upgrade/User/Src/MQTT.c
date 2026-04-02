@@ -12,6 +12,7 @@
 #include "Broker.h"
 #include <string.h>
 extern volatile uint8_t g_mqtt_ping_waiting;
+extern volatile uint32_t g_mqtt_heartbeat;
 volatile int g_mqtt_sockfd = -1;
 static QueueHandle_t xMQTTQue_HealthData;
 /* 发布 */
@@ -41,6 +42,7 @@ void MQTT_Public_Task(void* arg)
 				
 			}
 		}
+		g_mqtt_heartbeat=xTaskGetTickCount();
 		vTaskDelay(pdMS_TO_TICKS(3000));
 	}
 }
@@ -59,23 +61,28 @@ void my_mqtt_msg_handler(const char* payload, uint16_t len)
 OTA_Config_t ota_cmd;
 void my_mqtt_ota_handler(const char* payload, uint16_t len)
 {
-	char msg[64] = {0};
+	LOG_DEBUG("ota");
+	char msg[128] = {0};
     uint16_t copy_len = (len >= sizeof(msg)) ? sizeof(msg)-1 : len;
     memcpy(msg, payload, copy_len);
     msg[copy_len] = '\0';
 	/* deal ota command */
+	LOG_DEBUG("%s",msg);
 	if (strncmp(msg, "OTA:", 4) == 0)
 	{
+		LOG_DEBUG("ota strncmp");
 		int ip[4], port;
         char path[64];
-		if (sscanf(msg,"OTA:%d.%d.%d.%d:%d:%63s",&ip[0],&ip[1],&ip[2],&ip[3],&port, path)==6)
+		if (sscanf(msg,"OTA:%d.%d.%d.%d:%d:%s",&ip[0],&ip[1],&ip[2],&ip[3],&port, path)==6)
 		{
+			LOG_DEBUG("ota sscanf");
 			ota_cmd.ip[0]=ip[0];
 			ota_cmd.ip[1]=ip[1];
 			ota_cmd.ip[2]=ip[2];
 			ota_cmd.ip[3]=ip[3];
 			ota_cmd.port=port;
 			strcpy(ota_cmd.path, path);
+			LOG_DEBUG("OTA Send Broker");
 			Broker_Publish(TOPIC_OTA_DATA,&ota_cmd);
 		}
 	}
@@ -83,12 +90,17 @@ void my_mqtt_ota_handler(const char* payload, uint16_t len)
 /* 订阅 */
 void MQTT_Subscribe_Task(void *pvParameters)
 {
-	int result=init(&at_esp8266,"www","123456789");	/* 联网 */
-	assert_param(result==0);
-	LOG_DEBUG("init OK");
 	int fd_mqtt;
 	while(1)
     {
+		int result=init(&at_esp8266,"www","123456789");	/* 联网 */
+		if(result != 0) 
+		{
+			LOG_DEBUG("ESP8266 Init Failed! Rebooting task...");
+			vTaskDelay(pdMS_TO_TICKS(3000));
+			continue;
+		}
+		LOG_DEBUG("init OK");
         fd_mqtt = socket(AF_INET, SOCK_STREAM, 0);
         if (fd_mqtt < 0)
 		{
@@ -122,7 +134,7 @@ void MQTT_Subscribe_Task(void *pvParameters)
 				while(1)
 				{
 					int len = recv(fd_mqtt, &rx_buf[rx_idx], sizeof(rx_buf)-rx_idx, 500);
-
+					
 					if(len>0)
 					{
 						rx_idx += len;
@@ -132,6 +144,7 @@ void MQTT_Subscribe_Task(void *pvParameters)
 							if(total_packet_len>0&&total_packet_len<=rx_idx)
 							{
 								/* 订阅消息 */
+								LOG_DEBUG("%s",rx_buf);
 								Subscribe_Callback(rx_buf, total_packet_len);
 								if((rx_idx-total_packet_len) > 0)
 								{

@@ -79,16 +79,19 @@ void OTA_Jump_TO_Normal_APP(uint32_t app_ep_addr)
 /* jump to upgrade app */
 void OTA_Jump_TO_Upgrade_APP(uint32_t app_head_addr,uint32_t app_head_len)
 {
+	put_str("need to upgrade\r\n");
 	header_t head;
 	static uint8_t data[ONCE_RELOCATE_MAX_LEN];
 	uint32_t relocated_len=0;
 	/* read internal head */
 	MCU_Flash_Read(app_head_addr,(uint8_t*)&head,sizeof(header_t));
+	put_str("read internal head ok\r\n");
 	/* simple check internal head */
 	if(head.ih_magic!=IH_MAGIC)
 	{
 		put_str("Jump_TO_Upgrade's internal app 's magic error");
 	}
+	put_str("simple check internal head ok\r\n");
 	/* deal internal head */
 	uint32_t content_length1=head.ih_size;
 	/* relocate internal app to external flash_B*/
@@ -100,15 +103,18 @@ void OTA_Jump_TO_Upgrade_APP(uint32_t app_head_addr,uint32_t app_head_len)
 		OTA_Write_Flash(OTA_BACKUP+relocated_len,data,push_len);
 		relocated_len+=push_len;
 	}
-	
+	put_str("relocate internal app to external flash_B ok\r\n");
 	/* read external head */
 	Flash_Device->ReadDatas(Flash_Device,OTA_DOWN_HEAD_ADDR,(uint8_t*)&head,sizeof(header_t));
+	put_str("read external head\r\n");
 	/* simple check external head */
 	if(head.ih_magic!=IH_MAGIC)
 	{
-		put_str("Jump_TO_Upgrade's external app 's magic error");
+		put_str("Jump_TO_Upgrade's external app 's magic error\r\n");
 	}
+	put_str("simple check external head ok\r\n");
 	/* deal external head */
+	relocated_len=0;
 	uint32_t content_length2=head.ih_size;
 	/* relocate external flash_A to internal Flash*/
 	MCU_Flash_Erase(app_head_addr,content_length2+app_head_len);
@@ -126,14 +132,17 @@ void OTA_Jump_TO_Upgrade_APP(uint32_t app_head_addr,uint32_t app_head_len)
 		}
 		relocated_len+=push_len;
 	}
+	put_str("relocate external flash_A to internal Flash ok\r\n");
 	/* updata flag */
 	OTA_Write_Flash_Flag(BOOT_FLAG_TESTING);
+	put_str("updata flag ok\r\n");
 	/* jump new app */
 	OTA_Jump_TO_Normal_APP(app_head_addr+app_head_len);
 }
 /* jump to back app */
 void OTA_Jump_TO_BACK_APP(uint32_t app_head_addr,uint32_t app_head_len)
 {
+	put_str("jump to back app\r\n");
 	header_t head;
 	static uint8_t data[ONCE_RELOCATE_MAX_LEN];
 	uint32_t relocated_len=0;
@@ -164,6 +173,8 @@ void OTA_Jump_TO_BACK_APP(uint32_t app_head_addr,uint32_t app_head_len)
 	}
 	/* updata flag */
 	OTA_Write_Flash_Flag(BOOT_FLAG_ROLLED_BACK);
+	put_str("updata flag ok\r\n");
 	/* jump old app */
+	put_str("jump to back app ok\r\n");
 	OTA_Jump_TO_Normal_APP(app_head_addr+app_head_len);
 }

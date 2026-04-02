@@ -32,6 +32,7 @@ typedef struct
 	const char* expected_resp;
 }AT_config;
 static const AT_Device* Get_ATdev_From_UARTdev(UART_Device* uart_dev);
+static uint16_t rx_read_pos = 0;
 /* 错误回调 */
 static void AT_ErrorCallback(UART_HandleTypeDef *huart)
 {
@@ -39,9 +40,14 @@ static void AT_ErrorCallback(UART_HandleTypeDef *huart)
 	__HAL_UART_CLEAR_FEFLAG(huart);
 	__HAL_UART_CLEAR_NEFLAG(huart);
 	__HAL_UART_CLEAR_PEFLAG(huart);
+	rx_read_pos = 0;
+	UART_Device* uart_dev=Get_UARTDev_FromUart(huart);
+	if(uart_dev!=NULL)
+	{
+		uart_dev->RecvByte(uart_dev,NULL, 0, 0);
+	}
 }
 /* dma空闲中断回调 */
-static uint16_t rx_read_pos = 0;
 static void AT_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
 	UART_Device* uart_dev=Get_UARTDev_FromUart(huart);
@@ -50,7 +56,7 @@ static void AT_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 	if(uart_dev==NULL||at_dev==NULL||buf==NULL) return;
 	AT_config* cfg=at_dev->pri_data;
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	uint16_t rx_write_pos=Size;\
+	uint16_t rx_write_pos=Size;
 	if(rx_write_pos == rx_read_pos)
 	{
 		return;

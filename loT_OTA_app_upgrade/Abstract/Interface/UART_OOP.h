@@ -3,7 +3,7 @@
 #include "main.h"
 #include <stdint.h>
 #include <stdio.h>
-#define UART_RX_MAX_LEN 256
+#define UART_RX_MAX_LEN 4000
 
 typedef struct _UART_Device UART_Device;
 
