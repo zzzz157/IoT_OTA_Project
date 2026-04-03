@@ -4,6 +4,8 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
+#define LFS_THREADSAFE
+
 #define LFS_MALLOC(size)  pvPortMalloc(size)
 #define LFS_FREE(ptr)     vPortFree(ptr)
 

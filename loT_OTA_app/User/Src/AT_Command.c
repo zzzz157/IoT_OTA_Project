@@ -173,7 +173,11 @@ int at_init(AT_Device* self,char* uart_name)
 	cfg->current_link_id=-1;
 	cfg->rx_idx=0;
 	int start_rcev=cfg->uart_dev->RecvByte(cfg->uart_dev, NULL, 0, 0);
-	assert_param(start_rcev==0);
+	if(start_rcev != 0)
+    {
+        LOG_DEBUG("UART DMA Start Failed!");
+        return 1;
+    }
 	return 0;
 }
 /* 接收前初始化：清除状态 */

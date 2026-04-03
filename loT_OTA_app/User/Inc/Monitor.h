@@ -4,7 +4,7 @@
 /* less than iwag's reset_tick */
 #define MQTT_ALIVE_TICK			pdMS_TO_TICKS(9000)
 #define MAX30102_ALIVE_TICK		pdMS_TO_TICKS(9000)
-
+#define STACK_MARK_TICK			pdMS_TO_TICKS(20000)
 void Monitor_Task(void* arg);
 
 #endif

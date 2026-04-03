@@ -33,6 +33,7 @@
 #include "MQTT.h"
 #include "OTA.h"
 #include "Monitor.h"
+#include "SysParam.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -58,6 +59,7 @@
 	TaskHandle_t xMQTT_TaskHandler;
 	TaskHandle_t xOTA_TaskHandler;
 	TaskHandle_t xMonitor_TaskHandler;
+	TaskHandle_t xStartUp_TaskHandle_t;
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -69,6 +71,22 @@ const osThreadAttr_t defaultTask_attributes = {
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
+void StartUp_Task(void *param)
+{
+	lfs_init();
+    SysParam_Init();
+	LOG_DEBUG("Boot Count: %d", g_SysParam.boot_count);
+	
+	xTaskCreate(MAX30102_Task,"MAX30102_Task",512,NULL,11,&xMAX_TaskHandle_t);
+	xTaskCreate(MQTT_Task,"MQTT_Task",512,NULL,10,&xMQTT_TaskHandler);
+	xTaskCreate(OTA_Task,"OTA_Task",512,NULL,6,&xOTA_TaskHandler);
+	xTaskCreate(Monitor_Task,"Monitor_Task",512,NULL,4,&xMonitor_TaskHandler);
+	//xTaskCreate(GUI_Task,"GUI_Task",1280,NULL,2,&xGUI_TaskHandler);
+	//xTaskCreate(Modbus_Task,"modbus",256,NULL,6,&g_ModbusHandle_t);
+	
+	LOG_DEBUG("StartUp Finish. Deleting StartUp Task...");
+	vTaskDelete(NULL);
+}
 
 //PendSV
 /* USER CODE END FunctionPrototypes */
@@ -110,13 +128,8 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   
-	xTaskCreate(MAX30102_Task,"MAX30102_Task",256,NULL,11,&xMAX_TaskHandle_t);
-	xTaskCreate(MQTT_Task,"MQTT_Task",256,NULL,10,&xMQTT_TaskHandler);
-	xTaskCreate(OTA_Task,"OTA_Task",512,NULL,6,&xOTA_TaskHandler);
-	xTaskCreate(Monitor_Task,"Monitor_Task",128,NULL,4,&xMonitor_TaskHandler);
-	//xTaskCreate(GUI_Task,"GUI_Task",1280,NULL,2,&xGUI_TaskHandler);
-	//xTaskCreate(Modbus_Task,"modbus",256,NULL,6,&g_ModbusHandle_t);
-
+  xTaskCreate(StartUp_Task,"StartUp_Task",1024,NULL,12,&xStartUp_TaskHandle_t);
+  
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */

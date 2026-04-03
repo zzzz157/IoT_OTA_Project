@@ -90,8 +90,8 @@ HAL_StatusTypeDef MAX30102_ReadData(uint32_t *RedData, uint32_t *IrData)
   * @retval 无
   */
 extern volatile uint32_t g_max30102_heartbeat;
-static SemaphoreHandle_t g_xMAX30102AcquireSemaphore_t;
-static SemaphoreHandle_t g_xMAX30102CalculateSemaphore_t;
+SemaphoreHandle_t g_xMAX30102AcquireSemaphore_t;
+SemaphoreHandle_t g_xMAX30102CalculateSemaphore_t;
 static PPG_FIFO_t Ring_Buffer;
 void vMAX30102_AcquireTask(void* arg)
 {
@@ -189,7 +189,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		}
 	}
 }
-static TaskHandle_t xMAX_AcquireTaskHandler,xMAX_CalculateTaskHandler;
+TaskHandle_t xMAX_AcquireTaskHandler,xMAX_CalculateTaskHandler;
 void MAX30102_Task(void* arg)
 {
 	g_xMAX30102AcquireSemaphore_t = xSemaphoreCreateBinary();
@@ -197,8 +197,8 @@ void MAX30102_Task(void* arg)
 	FIFO_Init(&Ring_Buffer);
 	MAX30102_Init(&HardI2C1_DMA_Obj);
 	LOG_DEBUG("MAX init Cplt");
-	xTaskCreate(vMAX30102_AcquireTask,"MAX30102_AcquireTask",1024,NULL,5,&xMAX_AcquireTaskHandler);
-	xTaskCreate(vMAX30102_CalculateTask,"MAX30102_CalculateTask",1536,NULL,1,&xMAX_CalculateTaskHandler);
+	xTaskCreate(vMAX30102_AcquireTask,"MAX30102_AcquireTask",512,NULL,5,&xMAX_AcquireTaskHandler);
+	xTaskCreate(vMAX30102_CalculateTask,"MAX30102_CalculateTask",512,NULL,1,&xMAX_CalculateTaskHandler);
 	vTaskDelete(NULL);
 	while(1);
 }

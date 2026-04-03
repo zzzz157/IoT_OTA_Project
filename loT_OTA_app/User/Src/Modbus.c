@@ -6,7 +6,7 @@
 #include "Modbus_Rtu.h"
 #include "Broker.h"
 #include "DataCenter.h"
-
+#include "SysParam.h"
 static Modbus_DataHooks my_app_hooks = {
     .ReadBit           = DataCenter_ReadBit,
     .ReadInputBit      = DataCenter_ReadInputBit,
@@ -45,7 +45,7 @@ void Modbus_Task(void* arg)
     xTimerStart(xTimer, 0);
 	mosbus_dev=&modbus_rtu_dev1;
 	mosbus_dev->data_hooks = &my_app_hooks;
-	mosbus_dev->Init(mosbus_dev,0x01,"uart1_it");
+	mosbus_dev->Init(mosbus_dev,g_SysParam.modbus_id,"uart1_it");
 	LOG_DEBUG("Modbus init");
 	while(1)
 	{

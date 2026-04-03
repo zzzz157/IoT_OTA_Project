@@ -27,7 +27,7 @@ int OTA_Write_Flash_Flag(Boot_Flag flag)
 	return 1;
 }
 /* CRC check out */
-static uint32_t crc32_calculate(uint32_t crc, const uint8_t *buf, uint32_t len) 
+uint32_t crc32_calculate(uint32_t crc, const uint8_t *buf, uint32_t len) 
 {
     crc ^= 0xFFFFFFFF;
     while (len--) {
@@ -138,7 +138,6 @@ void OTA_Task(void* arg)
 	LOG_DEBUG("OTA start");
 	QueueHandle_t ota_queue=xQueueCreate(1,sizeof(OTA_Config_t));
 	Broker_Subscribe(TOPIC_OTA_DATA,ota_queue);
-	
 	OTA_Init(&W25QHandle_t);
 	static uint8_t ota_down_buf[OTA_DOWN_RXBUF_LEN*2];
 	while(1)
@@ -180,6 +179,7 @@ void OTA_Task(void* arg)
 					LOG_DEBUG("OTA: Connect Failed");
 					close(fd_ota);
 					fd_ota = -1;
+					vTaskDelay(pdMS_TO_TICKS(3000));
 					continue;
 				}
 				need_reconnect = 0;
@@ -200,6 +200,7 @@ void OTA_Task(void* arg)
 			if (send(fd_ota, req, strlen(req), 0) <= 0)
 			{
 				need_reconnect = 1;
+				vTaskDelay(pdMS_TO_TICKS(3000));
 				continue;
 			}
 			/* deal HTTP head */
@@ -269,6 +270,7 @@ void OTA_Task(void* arg)
             {
                 LOG_DEBUG("OTA: HTTP Header Error, reconnecting...");
                 need_reconnect = 1;
+				vTaskDelay(pdMS_TO_TICKS(3000));
                 continue;
             }
 			if (is_200 && received_len > 0) 
@@ -290,6 +292,7 @@ void OTA_Task(void* arg)
                 if (len <= 0)
                 {
                     need_reconnect = 1;
+					vTaskDelay(pdMS_TO_TICKS(3000));
                     break; 
                 }
                 fw_crc = crc32_calculate(fw_crc, ota_down_buf, len);

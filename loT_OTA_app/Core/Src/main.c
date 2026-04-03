@@ -35,6 +35,8 @@
 #include "Modbus_Rtu.h"
 #include "OTA.h"
 #include "Broker.h"
+#include "SysParam.h"
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -66,7 +68,23 @@ void MX_FREERTOS_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+static void Crash_Print(const char *msg, const char *task_name)
+{
+    HAL_UART_Transmit(&huart6, (uint8_t *)msg, strlen(msg), 1000);
+    if (task_name != NULL) {
+        HAL_UART_Transmit(&huart6, (uint8_t *)task_name, strlen(task_name), 1000);
+    }
+    HAL_UART_Transmit(&huart6, (uint8_t *)"\r\n", 2, 1000);
+}
+void vApplicationStackOverflowHook (TaskHandle_t xTask, signed char *pcTaskName)
+{
+    __disable_irq(); 
+	Crash_Print("FATAL ERROR: Stack Overflow in task: ", (char *)pcTaskName);
+    while(1)
+    {
+		
+    }
+}
 /* USER CODE END 0 */
 
 /**
@@ -80,7 +98,6 @@ int main(void)
 	SCB->VTOR=APP_EP_ADDRESS;
 	__enable_irq();
   /* USER CODE END 1 */
-
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
@@ -116,6 +133,7 @@ int main(void)
   OLED_Init(&SoftI2C1_Obj);
   OLED_ShowNum(1,1,2,1);
 	LOG_DEBUG("Task start");
+	
   /* USER CODE END 2 */
 
   /* Init scheduler */

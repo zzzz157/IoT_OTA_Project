@@ -19,7 +19,7 @@ static int uart_init(UART_Device* self)
     {
         cfg->at_dma_rx_buf = (uint8_t*)pvPortMalloc(UART_RX_MAX_LEN);
         if (cfg->at_dma_rx_buf == NULL) {
-            while(1); 
+            return -1;
         }
     }
     return 0;
