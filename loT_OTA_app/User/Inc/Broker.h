@@ -9,6 +9,7 @@ typedef enum
 {
     TOPIC_HEALTH_DATA = 0,
 	TOPIC_OTA_DATA,
+	TOPIC_OFFLINE_HEALTH_DATA,
     TOPIC_MAX
 }EventTopic_t;
 

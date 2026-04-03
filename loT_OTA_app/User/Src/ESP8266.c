@@ -73,6 +73,7 @@ int esp8266_init(void* at_device,char* wifi_name,char* wifi_password)
 		LOG_DEBUG("AT+CIPMUX ERR");
 		return -1;
 	}
+	at_dev->Send(at_dev, "AT+RFPOWER=40\r\n", 15, "OK", 2000);
 	char wifi_cmd[64];
 	snprintf(wifi_cmd, sizeof(wifi_cmd),"AT+CWJAP=\"%s\",\"%s\"\r\n", wifi_name,wifi_password);
 	if (at_dev->Send(at_dev, wifi_cmd, strlen(wifi_cmd), "OK", 10000) != Rx_OK)

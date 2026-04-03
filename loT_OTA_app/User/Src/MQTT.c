@@ -5,6 +5,7 @@
 #include "OLED.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "semphr.h"
 #include "main.h"
 #include "Broker.h"
 #include "OTA.h"
@@ -12,32 +13,75 @@
 #include "Broker.h"
 #include "cJSON.h"
 #include "SysParam.h"
+#include "Monitor.h"
+#include "lfs.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
+
 extern volatile uint8_t g_mqtt_ping_waiting;
 extern volatile uint32_t g_mqtt_heartbeat;
+
+extern lfs_t lfs;
+
 volatile int g_mqtt_sockfd = -1;
 static QueueHandle_t xMQTTQue_HealthData;
+SemaphoreHandle_t g_OfflineSaveSema=NULL;
 /* 发布 */
 void MQTT_Public_Task(void* arg)
 {
+	g_OfflineSaveSema=xSemaphoreCreateBinary();
 	xMQTTQue_HealthData=xQueueCreate(5,sizeof(HealthData_t));
 	Broker_Subscribe(TOPIC_HEALTH_DATA,xMQTTQue_HealthData);
 	HealthData_t mqtt_HrSpo2;
 	while(1)
 	{
+		BaseType_t has_new_data = pdFALSE;
+		while(xQueueReceive(xMQTTQue_HealthData, &mqtt_HrSpo2, 0) == pdTRUE)
+		{
+			if(mqtt_HrSpo2.confidence==1)
+			{
+				has_new_data = pdTRUE;
+			}
+		}
 		if(g_mqtt_sockfd>=0&&socket_status(g_mqtt_sockfd)==1)
 		{
-			BaseType_t has_new_data = pdFALSE;
-			while(xQueueReceive(xMQTTQue_HealthData, &mqtt_HrSpo2, 0) == pdTRUE) 
+			/* reconnect upload */
+			if(pdPASS==xSemaphoreTake(g_OfflineSaveSema,0))
 			{
-				if(mqtt_HrSpo2.confidence==1)
+				lfs_file_t file;
+				int err = lfs_file_open(&lfs, &file,HEALTH_OFFLINE_SAVE_FILE,LFS_O_RDONLY);
+				if (err == LFS_ERR_OK)
 				{
-					has_new_data = pdTRUE;
+					HealthData_t history_data;
+					while(lfs_file_read(&lfs,&file,&history_data,sizeof(HealthData_t))==
+							sizeof(HealthData_t))
+					{
+						cJSON* cjson_health=cJSON_CreateObject();
+						cJSON_AddStringToObject(cjson_health, "device", "stm32f407");
+						cJSON* cjson_data=cJSON_CreateObject();
+						cJSON_AddNumberToObject(cjson_data,"hr",history_data.HeartRate_Value);
+						cJSON_AddNumberToObject(cjson_data,"spo2",history_data.Spo2_Value);
+						cJSON_AddNumberToObject(cjson_data,"valid",history_data.confidence);
+						cJSON_AddItemToObject(cjson_health,"sensor",cjson_data);
+						cJSON_AddNumberToObject(cjson_health,"timestamp",history_data.timestamp_ms);
+						cJSON_AddNumberToObject(cjson_health,"history",1);
+						char* telemetry=cJSON_PrintUnformatted(cjson_health);
+						if(telemetry!=NULL)
+						{
+							MQTT_Publish(g_mqtt_sockfd,"qrszx/telemetry",telemetry);
+							cJSON_free(telemetry);
+						}
+						cJSON_Delete(cjson_health);
+						g_mqtt_heartbeat = xTaskGetTickCount();
+						vTaskDelay(50);
+					}
+					lfs_remove(&lfs,HEALTH_OFFLINE_SAVE_FILE);
+					lfs_file_close(&lfs, &file);
 				}
 			}
+			/* vaild data */
 			if(has_new_data ==pdTRUE)
 			{
 				cJSON* cjson_health=cJSON_CreateObject();
@@ -49,9 +93,9 @@ void MQTT_Public_Task(void* arg)
 				cJSON_AddNumberToObject(cjson_data,"spo2",mqtt_HrSpo2.Spo2_Value);
 				cJSON_AddNumberToObject(cjson_data,"valid",mqtt_HrSpo2.confidence);
 				cJSON_AddItemToObject(cjson_health,"sensor",cjson_data);
-
+		
 				cJSON_AddNumberToObject(cjson_health,"timestamp",mqtt_HrSpo2.timestamp_ms);
-			
+				
 				char* telemetry=cJSON_PrintUnformatted(cjson_health);
 				if(telemetry!=NULL)
 				{
@@ -59,9 +103,14 @@ void MQTT_Public_Task(void* arg)
 					cJSON_free(telemetry);
 				}
 				cJSON_Delete(cjson_health);
+				
 			}
 		}
-		g_mqtt_heartbeat=xTaskGetTickCount();
+		/* offline save */
+		else
+		{
+			Broker_Publish(TOPIC_OFFLINE_HEALTH_DATA,&mqtt_HrSpo2);
+		}
 		vTaskDelay(pdMS_TO_TICKS(3000));
 	}
 }
@@ -129,9 +178,11 @@ void MQTT_Subscribe_Task(void *pvParameters)
 	int fd_mqtt;
 	while(1)
     {
+		g_mqtt_heartbeat = xTaskGetTickCount();
 		int result=init(&at_esp8266,g_SysParam.wifi_ssid,g_SysParam.wifi_pwd);	/* 联网 */
 		if(result != 0)
 		{
+			g_mqtt_heartbeat = xTaskGetTickCount();
 			LOG_DEBUG("ESP8266 Init Failed! Rebooting task...");
 			vTaskDelay(pdMS_TO_TICKS(3000));
 			continue;
@@ -140,13 +191,16 @@ void MQTT_Subscribe_Task(void *pvParameters)
         fd_mqtt = socket(AF_INET, SOCK_STREAM, 0);
         if (fd_mqtt < 0)
 		{
+			g_mqtt_heartbeat = xTaskGetTickCount();
 			LOG_DEBUG("socket ERR");
             vTaskDelay(pdMS_TO_TICKS(3000)); 
             continue;
         }
 		g_mqtt_sockfd=fd_mqtt;
 		LOG_DEBUG("socket OK");
-
+		
+		g_mqtt_heartbeat = xTaskGetTickCount();
+		
         struct sockaddr_in server_addr;
         server_addr.sin_family = AF_INET;
         server_addr.sin_port = htons(g_SysParam.mqtt_port);
@@ -159,6 +213,7 @@ void MQTT_Subscribe_Task(void *pvParameters)
 			vTaskDelay(pdMS_TO_TICKS(100));
             if (MQTT_Connect(fd_mqtt, "STM32_Client_01") > 0)
 			{
+				g_mqtt_heartbeat = xTaskGetTickCount();
 				LOG_DEBUG("MQTT Connect Packet Sent!");
                 vTaskDelay(100);
 				MQTT_Subscribe("qrszx/command", my_mqtt_cmd_handler, fd_mqtt);
@@ -170,7 +225,7 @@ void MQTT_Subscribe_Task(void *pvParameters)
 				while(1)
 				{
 					int len = recv(fd_mqtt, &rx_buf[rx_idx], sizeof(rx_buf)-rx_idx, 500);
-					
+					g_mqtt_heartbeat = xTaskGetTickCount();
 					if(len>0)
 					{
 						rx_idx += len;
@@ -225,6 +280,7 @@ void MQTT_Subscribe_Task(void *pvParameters)
         {
             LOG_DEBUG("connect ERR, Wait to retry...");
         }
+		g_mqtt_heartbeat = xTaskGetTickCount();
 		g_mqtt_sockfd=-1;
         close(fd_mqtt);
         vTaskDelay(pdMS_TO_TICKS(3000));

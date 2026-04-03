@@ -1,22 +1,36 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
+#include "queue.h"
 #include "main.h"
 #include "W25Q64.h"
 #include "OTA.h"
 #include "Monitor.h"
+#include "Broker.h"
+#include "MAX30102.h"
+#include "lfs.h"
 
 extern IWDG_HandleTypeDef hiwdg;
 
 extern TaskHandle_t xMAX_AcquireTaskHandler,xMAX_CalculateTaskHandler;
 extern TaskHandle_t MQTT_Subscribe_TaskHandler,ListenRx_TaskHandler,MQTT_Public_TaskHandler;
 
+extern lfs_t lfs;
+
+extern SemaphoreHandle_t g_OfflineSaveSema;
+
 volatile uint32_t g_mqtt_heartbeat=0;
 volatile uint32_t g_max30102_heartbeat=0;
-volatile uint32_t last_tick=0;
+
+static volatile uint32_t last_tick=0;
+static QueueHandle_t xOfflineSaveQueue=NULL;
+static HealthData_t offline_health[10];
+static uint8_t offline_count=0;
 void Monitor_Task(void* arg)
 {
 	LOG_DEBUG("Monitor Task Started");
+	xOfflineSaveQueue=xQueueCreate(5,sizeof(HealthData_t));
+	Broker_Subscribe(TOPIC_OFFLINE_HEALTH_DATA,xOfflineSaveQueue);
 	for(uint8_t i=0;i<5;i++)
 	{
 		HAL_IWDG_Refresh(&hiwdg);
@@ -50,21 +64,33 @@ void Monitor_Task(void* arg)
 		if(stack_mark)
 		{
 			last_tick=current_tick;
-//			UBaseType_t max_acqu_stack  = uxTaskGetStackHighWaterMark(xMAX_AcquireTaskHandler);
-//			UBaseType_t max_calu_stack  = uxTaskGetStackHighWaterMark(xMAX_CalculateTaskHandler);
-//			UBaseType_t mqtt_pub_stack  = uxTaskGetStackHighWaterMark(MQTT_Public_TaskHandler);
-//			UBaseType_t mqtt_sub_stack  = uxTaskGetStackHighWaterMark(MQTT_Subscribe_TaskHandler);
-//			UBaseType_t at_listen_stack  = uxTaskGetStackHighWaterMark(ListenRx_TaskHandler);
-//			LOG_DEBUG("max calu Stack WaterMark: %lu words", max_calu_stack);
-//			LOG_DEBUG("max acq Stack WaterMark: %lu words", max_acqu_stack);
-//			LOG_DEBUG("mqtt pub Stack WaterMark: %lu words", mqtt_pub_stack);
-//			LOG_DEBUG("mqtt sub Stack WaterMark: %lu words", mqtt_sub_stack);
-//			LOG_DEBUG("at_listen Stack WaterMark: %lu words", at_listen_stack);
 			char stats_buffer[512];
 			vTaskList(stats_buffer);
 			LOG_DEBUG("Task Name\tState\tPrio\tStack\tNum");
 			LOG_DEBUG("\n%s", stats_buffer);
 		}
-		vTaskDelay(pdMS_TO_TICKS(1000));
+		if(pdPASS==xQueueReceive(xOfflineSaveQueue,&offline_health[offline_count],pdMS_TO_TICKS(1000)))
+		{
+			offline_count++;
+			if(offline_count>=HEALTH_OFFLINE_MAX_COUNT)
+			{
+				offline_count=0;
+				/* write into littlefs */
+				lfs_file_t file;
+				/* LFS_O_WRONLY: 只写模式 */
+				/* LFS_O_CREAT: 如果文件不存在，就创建它 */
+				/* LFS_O_TRUNC: 如果文件已存在，先清空旧数据 */
+				/* LFS_O_APPEND: 追加模式 */
+				int err = lfs_file_open(&lfs, &file,HEALTH_OFFLINE_SAVE_FILE,LFS_O_WRONLY|LFS_O_CREAT
+						|LFS_O_APPEND);
+				if (err == LFS_ERR_OK)
+				{
+					lfs_file_write(&lfs, &file,offline_health,sizeof(HealthData_t)*HEALTH_OFFLINE_MAX_COUNT);
+					lfs_file_close(&lfs, &file);
+					xSemaphoreGive(g_OfflineSaveSema);
+				}
+			}
+			vTaskDelay(pdMS_TO_TICKS(1000));
+		}
 	}
 }

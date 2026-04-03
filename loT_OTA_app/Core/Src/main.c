@@ -98,6 +98,7 @@ int main(void)
 	SCB->VTOR=APP_EP_ADDRESS;
 	__enable_irq();
   /* USER CODE END 1 */
+
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
