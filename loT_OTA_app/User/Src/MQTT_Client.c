@@ -33,7 +33,7 @@ static int MQTT_DecodeLength(const uint8_t *buf, uint32_t *value)
         encodedByte = buf[count++];
         len += (encodedByte & 127) * multiplier;
         multiplier *= 128;
-    } while ((encodedByte & 128) != 0);
+    } while ((encodedByte & 128) != 0&& count < 4);
     
     *value = len;
     return count;
@@ -145,6 +145,7 @@ int MQTT_Publish(int fd, const char* topic, const char* payload)
 volatile uint8_t g_mqtt_ping_waiting = 0;
 int Subscribe_Callback(void* rx_buf, uint16_t size)
 {
+	if(size < 2) return -1;
 	uint8_t* buf=(uint8_t*)rx_buf;
 	if (buf[0] == 0xD0 && buf[1] == 0x00)
     {
@@ -158,20 +159,23 @@ int Subscribe_Callback(void* rx_buf, uint16_t size)
 	uint32_t remain_len = 0;
     int len_bytes = MQTT_DecodeLength(&buf[1], &remain_len);
 	int offset = 1 + len_bytes;
+	if (offset + 2 > size) return -1;
 	/* 主题的长度 */
 	uint16_t topic_len = (buf[offset] << 8) | buf[offset + 1];
     offset += 2;
-	
+	if (offset + topic_len > size) return -1;
 	char* topic_ptr = (char*)&buf[offset]; /* 主题起始帧 */
 	offset += topic_len;
 	if (qos > 0) /* QoS>0 报文中会多出2个字节的 Packet ID */
 	{
         offset += 2;
     }
+	if (offset > size) return -1;
 	char* payload_ptr=(char*)&buf[offset];/* 数据起始帧 */
 	uint32_t header_size = offset - (1 + len_bytes);
+	if (remain_len < header_size) return -1;
 	uint16_t payload_len =remain_len - header_size; /* 数据长度 */
-	
+	if (offset + payload_len > size) return -1;
 	MQTT_List* current_node = mqtt_list;
 	while(current_node != NULL)
 	{
@@ -198,6 +202,7 @@ int MQTT_PingReq(int fd)
 
 uint32_t Get_TotalPacket_Len(void* rx_buf,uint16_t len)
 {
+	if (len < 2) return 0;
 	uint8_t* buf=(uint8_t*)rx_buf;
 	uint32_t remain_len = 0;
     int len_bytes =MQTT_DecodeLength(&buf[1], &remain_len);

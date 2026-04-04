@@ -51,11 +51,11 @@ int esp8266_init(void* at_device,char* wifi_name,char* wifi_password)
 	AT_Device* at_dev=(AT_Device*)at_device;
 	LOG_DEBUG("init Start");
 	//vTaskDelay(pdMS_TO_TICKS(7000));
-	if(at_dev->Send(at_dev, "AT+RST\r\n", 8, "OK", 5000)!=Rx_OK)
-	{
-		LOG_DEBUG("AT+RST Timeout");
-	}
-	vTaskDelay(pdMS_TO_TICKS(3000));
+//	if(at_dev->Send(at_dev, "AT+RST\r\n", 8, "OK", 5000)!=Rx_OK)
+//	{
+//		LOG_DEBUG("AT+RST Timeout");
+//	}
+//	vTaskDelay(pdMS_TO_TICKS(3000));
 	//at_dev->Send(at_dev, "\r\n\r\n", 4, "OK", 1000);
 	while(at_dev->Send(at_dev, "ATE0\r\n", 6, "OK", 2000) != Rx_OK)
     {

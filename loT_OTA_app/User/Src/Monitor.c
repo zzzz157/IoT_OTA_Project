@@ -85,7 +85,8 @@ void Monitor_Task(void* arg)
 						|LFS_O_APPEND);
 				if (err == LFS_ERR_OK)
 				{
-					lfs_file_write(&lfs, &file,offline_health,sizeof(HealthData_t)*HEALTH_OFFLINE_MAX_COUNT);
+					lfs_file_write(&lfs, &file,offline_health,
+						sizeof(HealthData_t)*HEALTH_OFFLINE_MAX_COUNT);
 					lfs_file_close(&lfs, &file);
 					xSemaphoreGive(g_OfflineSaveSema);
 				}

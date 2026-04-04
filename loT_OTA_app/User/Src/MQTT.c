@@ -12,6 +12,7 @@
 #include "MAX30102.h"
 #include "Broker.h"
 #include "cJSON.h"
+#include "cJSON_config.h"
 #include "SysParam.h"
 #include "Monitor.h"
 #include "lfs.h"
@@ -28,6 +29,7 @@ extern lfs_t lfs;
 volatile int g_mqtt_sockfd = -1;
 static QueueHandle_t xMQTTQue_HealthData;
 SemaphoreHandle_t g_OfflineSaveSema=NULL;
+SemaphoreHandle_t g_cjson_mutex = NULL;
 /* 发布 */
 void MQTT_Public_Task(void* arg)
 {
@@ -55,9 +57,11 @@ void MQTT_Public_Task(void* arg)
 				if (err == LFS_ERR_OK)
 				{
 					HealthData_t history_data;
+					xSemaphoreTake(g_cjson_mutex,portMAX_DELAY);
 					while(lfs_file_read(&lfs,&file,&history_data,sizeof(HealthData_t))==
 							sizeof(HealthData_t))
 					{
+						reset_cjson_pool();
 						cJSON* cjson_health=cJSON_CreateObject();
 						cJSON_AddStringToObject(cjson_health, "device", "stm32f407");
 						cJSON* cjson_data=cJSON_CreateObject();
@@ -79,11 +83,15 @@ void MQTT_Public_Task(void* arg)
 					}
 					lfs_remove(&lfs,HEALTH_OFFLINE_SAVE_FILE);
 					lfs_file_close(&lfs, &file);
+					xSemaphoreGive(g_cjson_mutex);
 				}
 			}
 			/* vaild data */
 			if(has_new_data ==pdTRUE)
 			{
+				xSemaphoreTake(g_cjson_mutex,portMAX_DELAY);
+				reset_cjson_pool();
+				
 				cJSON* cjson_health=cJSON_CreateObject();
 				
 				cJSON_AddStringToObject(cjson_health, "device", "stm32f407");
@@ -103,7 +111,7 @@ void MQTT_Public_Task(void* arg)
 					cJSON_free(telemetry);
 				}
 				cJSON_Delete(cjson_health);
-				
+				xSemaphoreGive(g_cjson_mutex);
 			}
 		}
 		/* offline save */
@@ -122,11 +130,13 @@ static void my_mqtt_cmd_handler(const char* payload, uint16_t len)
     memcpy(message, payload, copy_len);
     message[copy_len] = '\0';
 	LOG_DEBUG("%s",message);
+	xSemaphoreTake(g_cjson_mutex,portMAX_DELAY);
+	reset_cjson_pool();
 	cJSON* cjson_head = cJSON_Parse(message);
 	if(cjson_head == NULL)
 	{
 		LOG_DEBUG("parse fail");
-		return;
+		goto exit;
 	}
 	cJSON* cjson_cmd=cJSON_GetObjectItem(cjson_head,"cmd");
 	if (cjson_cmd != NULL && cJSON_IsString(cjson_cmd))
@@ -170,7 +180,9 @@ static void my_mqtt_cmd_handler(const char* payload, uint16_t len)
 	{
 		LOG_DEBUG("JSON missing 'cmd' or 'cmd' is not string");
 	}
+exit:
 	cJSON_Delete(cjson_head);
+	xSemaphoreGive(g_cjson_mutex);
 }
 /* 订阅 */
 void MQTT_Subscribe_Task(void *pvParameters)
@@ -293,6 +305,8 @@ void MQTT_Task(void* arg)
 {
 	LOG_DEBUG("MQTT Task");
 	socket_register_device(&esp8266_net_device);  /* 注册socket */
+	My_cJSON_Hook_Init(); 	/* init cJSON hook */
+	if(g_cjson_mutex==NULL) g_cjson_mutex=xSemaphoreCreateMutex(); /* create cjson mutex */
 	xTaskCreate(AT_Recv_Task,"AT",512,&at_esp8266,7,&ListenRx_TaskHandler);/* 监听Rx任务 */
 	xTaskCreate(MQTT_Subscribe_Task,"MQTT_Task",512,&at_esp8266,5,&MQTT_Subscribe_TaskHandler);
 	xTaskCreate(MQTT_Public_Task,"mqtt_public",512,NULL,3,&MQTT_Public_TaskHandler);
