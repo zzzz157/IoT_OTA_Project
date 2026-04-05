@@ -110,7 +110,12 @@ int main(void)
 		}
 		case BOOT_FLAG_NEED_UPDATE:
 		{
-			OTA_Jump_TO_Upgrade_APP(APP_HEAD_ADDRESS,OTA_HAED_LENGTH);
+			Relocate_Internal_To_Backup(APP_HEAD_ADDRESS,OTA_HAED_LENGTH);
+		}
+		case BOOT_FLAG_UPDATEING:
+		{
+			Relocate_NewApp_To_Internal(APP_HEAD_ADDRESS,OTA_HAED_LENGTH);
+			OTA_Jump_TO_Normal_APP(APP_HEAD_ADDRESS);
 			break;
 		}
 		case BOOT_FLAG_TESTING:

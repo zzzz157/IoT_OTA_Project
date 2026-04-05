@@ -18,8 +18,9 @@ typedef enum
 	BOOT_FLAG_NONE=0xFFFFFFFF,
 	BOOT_CORRUPTED_FIRMWARE=0x11111111,
 	BOOT_FLAG_NEED_UPDATE=0x22222222,
-	BOOT_FLAG_TESTING=0x33333333,
-	BOOT_FLAG_ROLLED_BACK=0x44444444,
+	BOOT_FLAG_UPDATEING=0x33333333,
+	BOOT_FLAG_TESTING=0x44444444,
+	BOOT_FLAG_ROLLED_BACK=0x55555555,
 }Boot_Flag;
 
 #pragma pack(push, 1)
@@ -41,7 +42,8 @@ typedef struct image_header{
 
 uint32_t bootloader_init(W25Q64_t* ex_handle);
 void OTA_Jump_TO_Normal_APP(uint32_t app_ep_addr);
-void OTA_Jump_TO_Upgrade_APP(uint32_t app_head_addr,uint32_t app_head_len);
+void Relocate_Internal_To_Backup(uint32_t app_head_addr,uint32_t app_head_len);
+void Relocate_NewApp_To_Internal(uint32_t app_head_addr,uint32_t app_head_len);
 void OTA_Jump_TO_BACK_APP(uint32_t app_head_addr,uint32_t app_head_len);
 
 #endif

@@ -75,13 +75,12 @@ void OTA_Jump_TO_Normal_APP(uint32_t app_ep_addr)
 	HAL_DeInit();
 	start_app(app_ep_addr);
 }
-
-/* jump to upgrade app */
-void OTA_Jump_TO_Upgrade_APP(uint32_t app_head_addr,uint32_t app_head_len)
+static uint8_t data[ONCE_RELOCATE_MAX_LEN];
+/* relocate internal app to external flash_B */
+void Relocate_Internal_To_Backup(uint32_t app_head_addr,uint32_t app_head_len)
 {
 	put_str("need to upgrade\r\n");
 	header_t head;
-	static uint8_t data[ONCE_RELOCATE_MAX_LEN];
 	uint32_t relocated_len=0;
 	/* read internal head */
 	MCU_Flash_Read(app_head_addr,(uint8_t*)&head,sizeof(header_t));
@@ -104,6 +103,13 @@ void OTA_Jump_TO_Upgrade_APP(uint32_t app_head_addr,uint32_t app_head_len)
 		relocated_len+=push_len;
 	}
 	put_str("relocate internal app to external flash_B ok\r\n");
+	OTA_Write_Flash_Flag(BOOT_FLAG_UPDATEING);
+}
+/* relocate external flash_A to internal Flash */
+void Relocate_NewApp_To_Internal(uint32_t app_head_addr,uint32_t app_head_len)
+{
+	header_t head;
+	uint32_t relocated_len=0;
 	/* read external head */
 	Flash_Device->ReadDatas(Flash_Device,OTA_DOWN_HEAD_ADDR,(uint8_t*)&head,sizeof(header_t));
 	put_str("read external head\r\n");
@@ -114,9 +120,8 @@ void OTA_Jump_TO_Upgrade_APP(uint32_t app_head_addr,uint32_t app_head_len)
 	}
 	put_str("simple check external head ok\r\n");
 	/* deal external head */
-	relocated_len=0;
 	uint32_t content_length2=head.ih_size;
-	/* relocate external flash_A to internal Flash*/
+	/* relocate external flash_A to internal Flash */
 	MCU_Flash_Erase(app_head_addr,content_length2+app_head_len);
 	while(relocated_len<content_length2+app_head_len)
 	{
@@ -136,8 +141,6 @@ void OTA_Jump_TO_Upgrade_APP(uint32_t app_head_addr,uint32_t app_head_len)
 	/* updata flag */
 	OTA_Write_Flash_Flag(BOOT_FLAG_TESTING);
 	put_str("updata flag ok\r\n");
-	/* jump new app */
-	OTA_Jump_TO_Normal_APP(app_head_addr+app_head_len);
 }
 /* jump to back app */
 void OTA_Jump_TO_BACK_APP(uint32_t app_head_addr,uint32_t app_head_len)
