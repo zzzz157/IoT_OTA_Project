@@ -23,7 +23,6 @@ static void my_cjson_free(void* ptr)
 {
 	
 }
-/* reset */
 void reset_cjson_pool()
 {
     cjson_pool_offset = 0;

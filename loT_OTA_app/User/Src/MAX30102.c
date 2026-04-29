@@ -67,6 +67,7 @@ void MAX30102_Init(const I2C_Device* i2c_bus)
     HAL_NVIC_SetPriority(EXTI15_10_IRQn, 12, 0);
 	HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 }
+
 /**
   * @brief  MAX30102读取FIFO
   * @param  RedData：存放红光数据的数组
@@ -75,6 +76,10 @@ void MAX30102_Init(const I2C_Device* i2c_bus)
   */
 HAL_StatusTypeDef MAX30102_ReadData(uint32_t *RedData, uint32_t *IrData)
 {
+	/* intentional HardFault_Handler */
+//	void (*f)(void) = (void(*)(void))0;
+//	f();
+	
 	uint8_t ReceiveBuf[6];
 	HAL_StatusTypeDef State=MAX_I2C->ReadRegs(MAX_I2C,MAX30102_ADDRESS_7BIT,
 		MAX30102_REG_FIFO_DATA,ReceiveBuf,6,10);

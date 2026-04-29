@@ -3,9 +3,10 @@
 #include "main.h"
 #include "UART_OOP.h"
 #include "usart.h"
+#if UART_USE_FREERTOS
 #include "FreeRTOS.h"
 #include "Semphr.h"
-
+#endif
 typedef struct
 {
 	UART_HandleTypeDef* uart;

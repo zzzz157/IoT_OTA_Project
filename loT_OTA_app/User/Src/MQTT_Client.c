@@ -149,6 +149,7 @@ int Subscribe_Callback(void* rx_buf, uint16_t size)
 	uint8_t* buf=(uint8_t*)rx_buf;
 	if (buf[0] == 0xD0 && buf[1] == 0x00)
     {
+		/* recv ping */
         g_mqtt_ping_waiting = 0;
         LOG_DEBUG("Recv PINGRESP");
         return 0;

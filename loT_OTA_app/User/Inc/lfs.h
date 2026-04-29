@@ -15,7 +15,7 @@ extern "C"
 {
 #endif
 
-
+	
 /// Version info ///
 
 // Software library version
@@ -793,7 +793,6 @@ int lfs_fs_grow(lfs_t *lfs, lfs_size_t block_count);
 int lfs_migrate(lfs_t *lfs, const struct lfs_config *cfg);
 #endif
 #endif
-
 
 #ifdef __cplusplus
 } /* extern "C" */

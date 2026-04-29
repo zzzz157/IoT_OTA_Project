@@ -2,6 +2,7 @@
 loT_OTA_app/*
 loT_OTA_app_upgrade/*
 loT_OTA_bootloader/*
+.claude/*
 
 # 2. 放行核心代码
 !loT_OTA_app/Abstract/

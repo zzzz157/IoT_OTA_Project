@@ -1,10 +1,13 @@
 #include "W25Q64.h"
 #include "OTA.h"
 #include "Socket.h"
+#include "lfs.h"
+#include "MQTT.h"
 #include "main.h"
 #include "Broker.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "event_groups.h"
 #include "queue.h"
 #include <stdio.h>
 #include <string.h>
@@ -25,6 +28,42 @@ int OTA_Write_Flash_Flag(Boot_Flag flag)
 		return 0;
 	}
 	return 1;
+}
+
+static uint32_t progress_record_idx = 0;
+static uint32_t max_recorded_offset = 0;
+/* record download progress */
+static int ota_record_download_progress(uint32_t current_offset)
+{
+	if(current_offset<=max_recorded_offset) return 1;
+	if(progress_record_idx >= 1024) 
+	{
+        Flash_Device->SectorErase(Flash_Device, OTA_PROGRESS_ADDR & 0xFFFFF000);
+        progress_record_idx = 0;
+    }
+	int res= Flash_Device->WritePage(Flash_Device,OTA_PROGRESS_ADDR+4*progress_record_idx
+			,(uint8_t*)&current_offset,4);
+	if(res==1)
+	{
+		max_recorded_offset = current_offset;
+		progress_record_idx++;
+	}
+	return res;
+}
+/* get resumable download address */
+static uint32_t ota_get_exact_offset()
+{
+	uint32_t exact_offset=0;
+	for(progress_record_idx=0;;progress_record_idx++)
+	{
+		uint32_t value=0xFFFFFFFF;
+		Flash_Device->ReadDatas(Flash_Device,OTA_PROGRESS_ADDR+4*progress_record_idx
+				,(uint8_t*)&value,4);
+		if(value==0xFFFFFFFF) break;
+		exact_offset=value;
+	}
+	max_recorded_offset=exact_offset;
+	return exact_offset;
 }
 /* CRC check out */
 uint32_t crc32_calculate(uint32_t crc, const uint8_t *buf, uint32_t len) 
@@ -131,194 +170,257 @@ static int strncasecmp_custom(const char *s1, const char *s2, size_t len) {
     }
     return (len == 0) ? 0 : (*s1 - *s2);
 }
-
-
+int reconnect_tcp(uint8_t* ip,uint32_t port)
+{
+	int fd=-1;
+	/* allocate struct and set loacal*/
+	fd=socket(AF_INET, SOCK_STREAM, 0);
+	if (fd < 0)	return -1;
+	/* set remote and connect */
+	struct sockaddr_in server_addr;
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_port = port;
+	server_addr.sin_addr.s_addr = IP4_ADDR(ip[0], ip[1], ip[2], ip[3]);
+	if (connect(fd,(struct sockaddr *)&server_addr,sizeof(server_addr))!= 0)
+	{
+		close(fd);
+		return -1;
+	}
+	return fd;
+}
+/* req http */
+static int http_req(OTA_Config_t* cfg,int sock_fd,uint32_t start_addr,uint32_t end_addr)
+{
+	char req[256];
+	snprintf(req, sizeof(req), 
+					"GET %s HTTP/1.1\r\n"
+					"Host: %d.%d.%d.%d:%d\r\n"
+					"Range: bytes=%u-%u\r\n"
+					"Accept: application/octet-stream\r\n"
+					"Connection: keep-alive\r\n\r\n",
+					cfg->path, cfg->ip[0], cfg->ip[1], cfg->ip[2], cfg->ip[3], cfg->port,
+					start_addr, end_addr);
+	return send(sock_fd, req, strlen(req), 0);
+}
+/* return current size */
+static uint32_t http_head_deal(int sock_fd,uint32_t* total_len,uint8_t* is_206)
+{
+	char header_line[128];
+	int line_len = 0;
+	uint8_t header_end=0;
+	uint32_t current_chunk_size=0;
+	while(!header_end)
+	{
+		char c;
+		if (recv(sock_fd, &c, 1, 5000)==-1)	return 0;
+		if (line_len <sizeof(header_line)-1)
+		{
+			header_line[line_len++] = c;
+		}
+		else
+		{
+			LOG_DEBUG("ota recv overflow\r\n");
+		}
+		if(c=='\n')
+		{
+			header_line[line_len] = '\0';
+			/* is normal response ? */
+			if (strstr(header_line, "HTTP/"))
+			{
+				if(strstr(header_line, "206"))
+				{
+					*is_206=1;
+				}
+			}
+			/* current head end */
+			if(line_len==2&&header_line[0] == '\r')
+			{
+				header_end = 1;
+				break;
+			}
+			
+			if (strncasecmp_custom(header_line, "Content-Length:", 15) == 0)
+			{
+				current_chunk_size = atoi(header_line + 15);
+			}
+			if (strncasecmp_custom(header_line, "Content-Range:", 14) == 0)
+            {
+                char *slash = strchr(header_line, '/');
+                if (slash) 
+                {
+                    *total_len = atoi(slash + 1);
+                }
+            }
+			/* prepare next line */
+			line_len = 0;
+		}
+		if(line_len >= sizeof(header_line) - 1) line_len = 0;
+	}
+	return current_chunk_size;
+}
+/* recv signal Segment data  */
+static uint8_t ota_down_buf[OTA_DOWNLOAD_REQ_LEN*2];
+static uint32_t http_recv(int sock_fd,uint32_t current_chunk_size,uint32_t* received_len)
+{
+	uint32_t chunk_received = 0;
+	while (chunk_received < current_chunk_size)
+    {
+        int expect = current_chunk_size - chunk_received;
+        if (expect > OTA_DOWNLOAD_REQ_LEN)
+        {
+            expect = OTA_DOWNLOAD_REQ_LEN;
+        }
+        int len = recv(sock_fd, ota_down_buf, expect, 5000);
+        if (len <= 0) break;
+		
+        if(OTA_Write_Flash(*received_len, ota_down_buf, len)!=1) break;
+        *received_len += len;
+        chunk_received += len;
+    }
+	return chunk_received;
+}
+extern lfs_t lfs;
 void OTA_Task(void* arg)
 {
 	LOG_DEBUG("OTA start");
 	QueueHandle_t ota_queue=xQueueCreate(1,sizeof(OTA_Config_t));
 	Broker_Subscribe(TOPIC_OTA_DATA,ota_queue);
 	OTA_Init(&W25QHandle_t);
-	static uint8_t ota_down_buf[OTA_DOWN_RXBUF_LEN*2];
+	
+	uint8_t is_resume=0;
+	
+	uint32_t boot_flag;
+	Flash_Device->ReadDatas(Flash_Device,BOOT_FLAGS_ADDR,(uint8_t*)&boot_flag,4);
+	if(boot_flag==BOOT_FLAG_DOWNLOADING)
+	{
+		LOG_DEBUG("Detect unfinished OTA, trying to resume...");
+        lfs_file_t file;
+        OTA_Config_t saved_cfg;
+		
+		int err = lfs_file_open(&lfs, &file, OTA_CFG_FILE, LFS_O_RDONLY);
+		if(err == LFS_ERR_OK)
+		{
+			lfs_ssize_t read_len = lfs_file_read(&lfs, &file, &saved_cfg, sizeof(OTA_Config_t));
+            lfs_file_close(&lfs, &file);
+			if(read_len==sizeof(OTA_Config_t))
+			{
+				LOG_DEBUG("Resume Config Loaded. Pushing to OTA Queue...");
+				xQueueSend(ota_queue, &saved_cfg, 0);
+				is_resume=1;
+			}
+			else
+			{
+				LOG_DEBUG("OTA Config file corrupted!");
+			}
+		}
+		else
+		{
+			LOG_DEBUG("No OTA Config file found in LittleFS!");
+		}
+	}
 	while(1)
 	{
 		OTA_Config_t cfg;
 		xQueueReceive(ota_queue,&cfg,portMAX_DELAY);
+		lfs_file_t file;
+		int err = lfs_file_open(&lfs, &file, OTA_CFG_FILE, LFS_O_WRONLY | LFS_O_CREAT | LFS_O_TRUNC);
+		if(err == LFS_ERR_OK)
+		{
+			lfs_file_write(&lfs, &file, &cfg, sizeof(OTA_Config_t));
+            lfs_file_close(&lfs, &file);
+            LOG_DEBUG("OTA Config saved to LittleFS.");
+		}
+		
+		OTA_Write_Flash_Flag(BOOT_FLAG_DOWNLOADING);
 		LOG_DEBUG("OTA upgrade start to run");
-		uint32_t received_len = 0;
-		uint32_t content_length = 0xFFFFFFFF;
-		uint32_t fw_crc = 0;
+		
+		uint32_t exact_offset=ota_get_exact_offset();
+		if(!is_resume)
+		{
+			Flash_Device->SectorErase(Flash_Device,OTA_PROGRESS_ADDR&0xFFFFF000);
+		}
+		is_resume=0;
+		uint32_t received_len = exact_offset&0xFFFFF000;
 		last_erased_sector = 0xFFFFFFFF;
+		uint32_t content_length = 0xFFFFFFFF;
 		int fd_ota = -1;
 		uint8_t need_reconnect = 1;
-		while(received_len < content_length)
+		while(received_len<content_length)
 		{
 			if(need_reconnect)
 			{
-				/* allocate struct and set loacal*/
-				if (fd_ota >= 0) 
+				if(xEventGroupWaitBits(xWiFiMQTTEventGroup,EVENT_WIFI_CONNECTED
+						,pdFALSE,pdFALSE,pdMS_TO_TICKS(10000))==pdFALSE)
 				{
-					close(fd_ota);
-					fd_ota = -1;
-				}
-				fd_ota=socket(AF_INET, SOCK_STREAM, 0);
-				if (fd_ota < 0) 
-				{
-					vTaskDelay(pdMS_TO_TICKS(1000));
 					continue;
 				}
-				/* set remote and connect */
-				struct sockaddr_in server_addr;
-				server_addr.sin_family = AF_INET;
-				server_addr.sin_port = htons(cfg.port);
-				server_addr.sin_addr.s_addr = IP4_ADDR(cfg.ip[0], cfg.ip[1], cfg.ip[2], cfg.ip[3]);
-				LOG_DEBUG("OTA: Connecting to HTTP Server...");
-				if (connect(fd_ota, (struct sockaddr *)&server_addr, sizeof(server_addr)) != 0) 
+				if(fd_ota>=0)
 				{
-					need_reconnect = 1;
-					LOG_DEBUG("OTA: Connect Failed");
 					close(fd_ota);
 					fd_ota = -1;
-					vTaskDelay(pdMS_TO_TICKS(3000));
+				}
+				fd_ota = reconnect_tcp(cfg.ip,htons(cfg.port));
+				if(fd_ota==-1)
+				{
+					vTaskDelay(pdMS_TO_TICKS(1000));
 					continue;
 				}
 				need_reconnect = 0;
 				LOG_DEBUG("OTA: Connecting Successfull");
 			}
-			uint32_t req_start = received_len;
-			uint32_t req_end = req_start + OTA_DOWN_RXBUF_LEN - 1;
 			/* send request to wait response */
-			char req[256];
-			snprintf(req, sizeof(req), 
-					"GET %s HTTP/1.1\r\n"
-					"Host: %d.%d.%d.%d:%d\r\n"
-					"Range: bytes=%u-%u\r\n"
-					"Accept: application/octet-stream\r\n"
-					"Connection: keep-alive\r\n\r\n",
-					cfg.path, cfg.ip[0], cfg.ip[1], cfg.ip[2], cfg.ip[3], cfg.port,
-					req_start, req_end);
-			if (send(fd_ota, req, strlen(req), 0) <= 0)
+			uint32_t req_start = received_len;
+			uint32_t req_end = req_start + OTA_DOWNLOAD_REQ_LEN - 1;
+			if(http_req(&cfg,fd_ota,req_start,req_end)==-1)
 			{
 				need_reconnect = 1;
 				vTaskDelay(pdMS_TO_TICKS(3000));
 				continue;
 			}
 			/* deal HTTP head */
-			char header_line[128];
-			int line_len = 0;
-			uint8_t header_end = 0;
-			uint8_t is_ok = 0;
-			uint8_t is_200 = 0;
-			uint32_t current_chunk_size = 0;
-			while(!header_end)
+			uint8_t is_206=0;
+			uint32_t current_chunk_size = http_head_deal(fd_ota,&content_length,&is_206);
+			if(current_chunk_size==0)
 			{
-				char c;
-				if (recv(fd_ota, &c, 1, 5000) <= 0) 
-				{
-					need_reconnect = 1; 
-					break;
-				}
-				if (line_len <sizeof(header_line)-1) 
-				{
-					header_line[line_len++] = c;
-				}
-				else
-				{
-					LOG_DEBUG("ota recv overflow\r\n");
-				}
-				if(c=='\n')
-				{
-					header_line[line_len] = '\0';
-					/* is normal response ? */
-					if (strstr(header_line, "HTTP/"))
-					{
-					    if (strstr(header_line, "200")) is_200 = 1;
-						if (is_200|| strstr(header_line, "206"))
-						{
-							is_ok = 1;
-						}
-					}
-					/* current head end */
-					if(line_len==2&&header_line[0] == '\r')
-					{
-						header_end = 1;
-						break;
-					}
-					/* get data len */
-					if (strncasecmp_custom(header_line, "Content-Length:", 15) == 0) 
-					{
-						current_chunk_size = atoi(header_line + 15);
-						if (content_length == 0xFFFFFFFF && is_200)
-						{
-                            content_length = current_chunk_size;
-                        }
-					}
-					if (strncasecmp_custom(header_line, "Content-Range:", 14) == 0)
-                    {
-                        char *slash = strchr(header_line, '/');
-                        if (slash) 
-                        {
-                            content_length = atoi(slash + 1);
-                        }
-                    }
-					/* prepare next line */
-					line_len = 0;
-				}
-				if (line_len >= sizeof(header_line) - 1) line_len = 0;
-			}
-			if (!is_ok || !header_end || current_chunk_size == 0)
-            {
-                LOG_DEBUG("OTA: HTTP Header Error, reconnecting...");
+				LOG_DEBUG("HTTP Header Error,reconnect...");
                 need_reconnect = 1;
 				vTaskDelay(pdMS_TO_TICKS(3000));
                 continue;
-            }
-			if (is_200 && received_len > 0) 
+			}
+			if(!is_206)
 			{
-                LOG_DEBUG("Server doesn't support Range, reset download!");
-                received_len = 0; 
-                fw_crc = 0;
-                last_erased_sector = 0xFFFFFFFF;
-            }
-			uint32_t chunk_received = 0;
-			while (chunk_received < current_chunk_size) 
-            {
-                int expect = current_chunk_size - chunk_received;
-                if (expect > OTA_DOWN_RXBUF_LEN) 
-                {
-                    expect = OTA_DOWN_RXBUF_LEN;
-                }
-                int len = recv(fd_ota, ota_down_buf, expect, 5000);
-                if (len <= 0)
-                {
-                    need_reconnect = 1;
-					vTaskDelay(pdMS_TO_TICKS(3000));
-                    break; 
-                }
-                fw_crc = crc32_calculate(fw_crc, ota_down_buf, len);
-                if(OTA_Write_Flash(received_len, ota_down_buf, len)!=1)
-				{
-					LOG_DEBUG("OTA_Write_Flash ERROR\r\n");
-					need_reconnect = 1;
-					break;
-				}
-                received_len += len;
-                chunk_received += len;
-            }
-			LOG_DEBUG("OTA Progress: %d / %d", received_len, 
-				(content_length != 0xFFFFFFFF) ? content_length:0);
+				LOG_DEBUG("Server reply 200, reset download!");
+				received_len = 0;
+				last_erased_sector = 0xFFFFFFFF;
+				need_reconnect = 1;
+				Flash_Device->SectorErase(Flash_Device, OTA_PROGRESS_ADDR & 0xFFFFF000); 
+				continue;
+			}
+			/* recv singal data */
+			uint32_t chunk_size=http_recv(fd_ota,current_chunk_size,&received_len);
+			if(chunk_size!=current_chunk_size)
+			{
+				LOG_DEBUG("recv signal error, reset download!");
+				need_reconnect = 1;
+				continue;
+			}
+			ota_record_download_progress(received_len);
 		}
-		if (fd_ota >= 0) 
+		Flash_Device->SectorErase(Flash_Device,OTA_PROGRESS_ADDR&0xFFFFF000);
+		if(fd_ota >= 0)
 		{
 			close(fd_ota);
 			fd_ota = -1;
 		}
-		if (content_length != 0xFFFFFFFF && received_len == content_length)
+		if(content_length != 0xFFFFFFFF && received_len == content_length)
 		{
+			/* firmware crc check */
 			if(OTA_Download_Check(OTA_HEAD_START_ADDR,OTA_HAED_LENGTH)==1)
 			{
+				/* updata boot flag */
 				if(OTA_Write_Flash_Flag(BOOT_FLAG_NEED_UPDATE)==1)
 				{
+					lfs_remove(&lfs, OTA_CFG_FILE);
 					/* restart */
 					LOG_DEBUG("OTA: Download Success! Rebooting in 1s...");
 					vTaskDelay(pdMS_TO_TICKS(1000));

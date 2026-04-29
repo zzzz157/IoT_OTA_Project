@@ -38,7 +38,8 @@
 /* flash management */
 #define OTA_DOWNLOAD								0x000000 /* new .bin */
 #define OTA_BACKUP									0x100000 /* old .bin */
-#define BOOT_FLAGS_ADDR								0x200000 /* old .bin */
+#define BOOT_FLAGS_ADDR								0x200000 /* boot flag */
+#define OTA_PROGRESS_ADDR  							0x201000 /* download progress record */
 #define LFS_FLASH_OFFSET 							0x210000 /* littlefs offset */
 
 typedef struct _W25Q64_t W25Q64_t;

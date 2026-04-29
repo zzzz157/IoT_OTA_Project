@@ -8,8 +8,9 @@
 #define IP_LENGTH 				15
 #define AT_DEVICE_SOCKET_NUM 	5
 #define AT_DATA_MAX_LEN      	2048
-#define AT_RX_BUF_SIZE       	4096
 #define RX_TRIGGERLEVEL      	1
+#define AT_RX_BUF_SIZE       	4096
+#define AT_RX_SIZE_MASK       	(AT_RX_BUF_SIZE-1)
 
 typedef enum AT_SocketType
 {

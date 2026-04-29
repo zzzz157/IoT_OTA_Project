@@ -103,11 +103,6 @@ int main(void)
 	/* prepare to upgrade */
 	switch(boot_flag)
 	{
-		case BOOT_FLAG_NONE:
-		{
-			OTA_Jump_TO_Normal_APP(APP_EP_ADDRESS);
-			break;
-		}
 		case BOOT_FLAG_NEED_UPDATE:
 		{
 			Relocate_Internal_To_Backup(APP_HEAD_ADDRESS,OTA_HAED_LENGTH);
@@ -115,17 +110,12 @@ int main(void)
 		case BOOT_FLAG_UPDATEING:
 		{
 			Relocate_NewApp_To_Internal(APP_HEAD_ADDRESS,OTA_HAED_LENGTH);
-			OTA_Jump_TO_Normal_APP(APP_HEAD_ADDRESS);
+			OTA_Jump_TO_Normal_APP(APP_EP_ADDRESS);
 			break;
 		}
 		case BOOT_FLAG_TESTING:
 		{
 			OTA_Jump_TO_BACK_APP(APP_HEAD_ADDRESS,OTA_HAED_LENGTH);
-			break;
-		}
-		case BOOT_FLAG_ROLLED_BACK:
-		{
-			OTA_Jump_TO_Normal_APP(APP_EP_ADDRESS);
 			break;
 		}
 		default:

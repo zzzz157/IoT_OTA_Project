@@ -267,7 +267,7 @@ void AT_Recv_Task(void* arg)
 			
 			/* 新数据 */
 			char* ipd_ptr=NULL;
-			while ((ipd_ptr=at_memmem(rx_buf,cfg->rx_idx,"+IPD"))!=NULL)
+			while((ipd_ptr=at_memmem(rx_buf,cfg->rx_idx,"+IPD"))!=NULL)
 			{
 				int use_len=(uint8_t*)ipd_ptr-rx_buf;
 				int link_id = 0;
@@ -360,8 +360,11 @@ void AT_Recv_Task(void* arg)
 			if(cfg->rx_idx >= sizeof(rx_buf)-64)
 			{
 				LOG_DEBUG("AT recv idx overflow");
-				cfg->rx_idx=0;
-				memset(rx_buf, 0, sizeof(rx_buf));
+				int keep_len = 256; 
+                int drop_len = cfg->rx_idx - keep_len;
+				memmove(rx_buf,rx_buf+drop_len,keep_len);
+                cfg->rx_idx = keep_len;
+                rx_buf[cfg->rx_idx] = '\0';
 			}
         }
 	}

@@ -6,9 +6,11 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
+#include "event_groups.h"
 #include "main.h"
 #include "Broker.h"
 #include "OTA.h"
+#include "MQTT.h"
 #include "MAX30102.h"
 #include "Broker.h"
 #include "cJSON.h"
@@ -190,6 +192,7 @@ void MQTT_Subscribe_Task(void *pvParameters)
 	int fd_mqtt;
 	while(1)
     {
+		xEventGroupClearBits(xWiFiMQTTEventGroup, EVENT_WIFI_CONNECTED);
 		g_mqtt_heartbeat = xTaskGetTickCount();
 		int result=init(&at_esp8266,g_SysParam.wifi_ssid,g_SysParam.wifi_pwd);	/* 联网 */
 		if(result != 0)
@@ -200,6 +203,7 @@ void MQTT_Subscribe_Task(void *pvParameters)
 			continue;
 		}
 		LOG_DEBUG("init OK");
+		xEventGroupSetBits(xWiFiMQTTEventGroup, EVENT_WIFI_CONNECTED);
         fd_mqtt = socket(AF_INET, SOCK_STREAM, 0);
         if (fd_mqtt < 0)
 		{
@@ -223,7 +227,10 @@ void MQTT_Subscribe_Task(void *pvParameters)
         {
 			LOG_DEBUG("connect OK");
 			vTaskDelay(pdMS_TO_TICKS(100));
-            if (MQTT_Connect(fd_mqtt, "STM32_Client_01") > 0)
+			char client_id[32];
+			snprintf(client_id, sizeof(client_id), "STM32_%d", xTaskGetTickCount());
+			
+            if (MQTT_Connect(fd_mqtt,client_id) > 0)
 			{
 				g_mqtt_heartbeat = xTaskGetTickCount();
 				LOG_DEBUG("MQTT Connect Packet Sent!");
@@ -301,12 +308,15 @@ void MQTT_Subscribe_Task(void *pvParameters)
 TaskHandle_t MQTT_Subscribe_TaskHandler;
 TaskHandle_t ListenRx_TaskHandler;
 TaskHandle_t MQTT_Public_TaskHandler;
+EventGroupHandle_t xWiFiMQTTEventGroup;
 void MQTT_Task(void* arg)
 {
 	LOG_DEBUG("MQTT Task");
 	socket_register_device(&esp8266_net_device);  /* 注册socket */
 	My_cJSON_Hook_Init(); 	/* init cJSON hook */
 	if(g_cjson_mutex==NULL) g_cjson_mutex=xSemaphoreCreateMutex(); /* create cjson mutex */
+	xWiFiMQTTEventGroup = xEventGroupCreate();
+	
 	xTaskCreate(AT_Recv_Task,"AT",512,&at_esp8266,7,&ListenRx_TaskHandler);/* 监听Rx任务 */
 	xTaskCreate(MQTT_Subscribe_Task,"MQTT_Task",512,&at_esp8266,5,&MQTT_Subscribe_TaskHandler);
 	xTaskCreate(MQTT_Public_Task,"mqtt_public",512,NULL,3,&MQTT_Public_TaskHandler);
