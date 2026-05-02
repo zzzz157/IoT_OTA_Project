@@ -221,7 +221,7 @@ static char* at_memmem(uint8_t* haystack, int haystack_len, const char* needle)
     }
     return NULL;
 }
-static uint8_t rx_buf[AT_RX_BUF_SIZE];
+static uint8_t rx_buf[AT_RX_BUF_SIZE+1];
 /* 监听RX */
 void AT_Recv_Task(void* arg)
 {

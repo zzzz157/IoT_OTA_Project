@@ -77,21 +77,16 @@ void StartUp_Task(void *param)
     SysParam_Init();
 	LOG_DEBUG("Boot Count: %d", g_SysParam.boot_count);
 	
-	
-	
-	
-	//xTaskCreate(MAX30102_Task,"MAX30102_Task",512,NULL,11,&xMAX_TaskHandle_t);
+	xTaskCreate(MAX30102_Task,"MAX30102_Task",512,NULL,11,&xMAX_TaskHandle_t);
 	xTaskCreate(MQTT_Task,"MQTT_Task",512,NULL,10,&xMQTT_TaskHandler);
 	xTaskCreate(OTA_Task,"OTA_Task",512,NULL,6,&xOTA_TaskHandler);
-	//xTaskCreate(Monitor_Task,"Monitor_Task",512,NULL,4,&xMonitor_TaskHandler);
-	//xTaskCreate(GUI_Task,"GUI_Task",1280,NULL,2,&xGUI_TaskHandler);
+	xTaskCreate(Monitor_Task,"Monitor_Task",256,NULL,4,&xMonitor_TaskHandler);
+	xTaskCreate(GUI_Task,"GUI_Task",512,NULL,2,&xGUI_TaskHandler);
 	//xTaskCreate(Modbus_Task,"modbus",256,NULL,6,&g_ModbusHandle_t);
 	
 	LOG_DEBUG("StartUp Finish. Deleting StartUp Task...");
 	vTaskDelete(NULL);
 }
-
-//PendSV
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);

@@ -4,10 +4,12 @@
 #include "lfs.h"
 #include "MQTT.h"
 #include "main.h"
+#include "iwdg.h"
 #include "Broker.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "event_groups.h"
+#include "semphr.h"
 #include "queue.h"
 #include <stdio.h>
 #include <string.h>
@@ -189,7 +191,7 @@ int reconnect_tcp(uint8_t* ip,uint32_t port)
 	return fd;
 }
 /* req http */
-static int http_req(OTA_Config_t* cfg,int sock_fd,uint32_t start_addr,uint32_t end_addr)
+static int http_req(OTA_Config* cfg,int sock_fd,uint32_t start_addr,uint32_t end_addr)
 {
 	char req[256];
 	snprintf(req, sizeof(req), 
@@ -280,66 +282,82 @@ static uint32_t http_recv(int sock_fd,uint32_t current_chunk_size,uint32_t* rece
 	return chunk_received;
 }
 extern lfs_t lfs;
+extern EventGroupHandle_t xGlobalEventGroup;
+uint8_t is_have_later_firmware=0;
 void OTA_Task(void* arg)
 {
 	LOG_DEBUG("OTA start");
-	QueueHandle_t ota_queue=xQueueCreate(1,sizeof(OTA_Config_t));
+	QueueHandle_t ota_queue=xQueueCreate(1,sizeof(OTA_Config));
 	Broker_Subscribe(TOPIC_OTA_DATA,ota_queue);
 	OTA_Init(&W25QHandle_t);
 	
-	uint8_t is_resume=0;
-	
-	uint32_t boot_flag;
+	OTA_Status status;
+	uint32_t boot_flag;	
 	Flash_Device->ReadDatas(Flash_Device,BOOT_FLAGS_ADDR,(uint8_t*)&boot_flag,4);
-	if(boot_flag==BOOT_FLAG_DOWNLOADING)
-	{
-		LOG_DEBUG("Detect unfinished OTA, trying to resume...");
-        lfs_file_t file;
-        OTA_Config_t saved_cfg;
-		
-		int err = lfs_file_open(&lfs, &file, OTA_CFG_FILE, LFS_O_RDONLY);
-		if(err == LFS_ERR_OK)
-		{
-			lfs_ssize_t read_len = lfs_file_read(&lfs, &file, &saved_cfg, sizeof(OTA_Config_t));
-            lfs_file_close(&lfs, &file);
-			if(read_len==sizeof(OTA_Config_t))
-			{
-				LOG_DEBUG("Resume Config Loaded. Pushing to OTA Queue...");
-				xQueueSend(ota_queue, &saved_cfg, 0);
-				is_resume=1;
-			}
-			else
-			{
-				LOG_DEBUG("OTA Config file corrupted!");
-			}
-		}
-		else
-		{
-			LOG_DEBUG("No OTA Config file found in LittleFS!");
-		}
-	}
 	while(1)
 	{
-		OTA_Config_t cfg;
-		xQueueReceive(ota_queue,&cfg,portMAX_DELAY);
-		lfs_file_t file;
-		int err = lfs_file_open(&lfs, &file, OTA_CFG_FILE, LFS_O_WRONLY | LFS_O_CREAT | LFS_O_TRUNC);
-		if(err == LFS_ERR_OK)
+		/* wait later farmware */
+		if(boot_flag==BOOT_FLAG_DOWNLOADING)
 		{
-			lfs_file_write(&lfs, &file, &cfg, sizeof(OTA_Config_t));
-            lfs_file_close(&lfs, &file);
-            LOG_DEBUG("OTA Config saved to LittleFS.");
+			is_have_later_firmware=1;
+			EventBits_t uxBits=xEventGroupWaitBits(xGlobalEventGroup,EVENT_OTA_RESUMEDOWNLOAD
+				,pdFALSE,pdTRUE,pdMS_TO_TICKS(500));
+			if((uxBits&EVENT_OTA_RESUMEDOWNLOAD)!=0)
+			{
+				status=OTA_STATUS_RESUMING;
+				Broker_Publish(TOPIC_OTA_STATUS,&status);
+				LOG_DEBUG("Detect unfinished OTA, trying to resume...");
+				lfs_file_t file;
+				OTA_Config saved_cfg;
+				int err = lfs_file_open(&lfs, &file, OTA_CFG_FILE, LFS_O_RDONLY);
+				if(err == LFS_ERR_OK)
+				{
+					lfs_ssize_t read_len = lfs_file_read(&lfs, &file, &saved_cfg, sizeof(OTA_Config));
+					lfs_file_close(&lfs, &file);
+					if(read_len==sizeof(OTA_Config))
+					{
+						saved_cfg.is_new=0;
+						LOG_DEBUG("Resume Config Loaded. Pushing to OTA Queue...");
+						xQueueSend(ota_queue, &saved_cfg, 0);
+					}
+					else
+					{
+						LOG_DEBUG("OTA Config file corrupted!");
+					}
+				}
+				else
+				{
+					LOG_DEBUG("No OTA Config file found in LittleFS!");
+				}
+			}
 		}
-		
+		/* wait new farmware */
+		OTA_Config cfg;
+		if(xQueueReceive(ota_queue,&cfg,pdMS_TO_TICKS(500))==pdTRUE)
+		{
+			if(cfg.is_new==1)
+			{
+				lfs_file_t file;
+				int err = lfs_file_open(&lfs,&file,OTA_CFG_FILE,LFS_O_WRONLY|LFS_O_CREAT|LFS_O_TRUNC);
+				if(err == LFS_ERR_OK)
+				{
+					lfs_file_write(&lfs, &file, &cfg, sizeof(OTA_Config));
+					lfs_file_close(&lfs, &file);
+					LOG_DEBUG("OTA Config saved to LittleFS.");
+				}
+				Flash_Device->SectorErase(Flash_Device,OTA_PROGRESS_ADDR&0xFFFFF000);
+				
+			}
+		}
+		else 	continue;
+		/* start download */
 		OTA_Write_Flash_Flag(BOOT_FLAG_DOWNLOADING);
 		LOG_DEBUG("OTA upgrade start to run");
+		status=OTA_STATUS_DOWNLOADING;
+		Broker_Publish(TOPIC_OTA_STATUS,&status);
 		
 		uint32_t exact_offset=ota_get_exact_offset();
-		if(!is_resume)
-		{
-			Flash_Device->SectorErase(Flash_Device,OTA_PROGRESS_ADDR&0xFFFFF000);
-		}
-		is_resume=0;
+		
 		uint32_t received_len = exact_offset&0xFFFFF000;
 		last_erased_sector = 0xFFFFFFFF;
 		uint32_t content_length = 0xFFFFFFFF;
@@ -349,11 +367,8 @@ void OTA_Task(void* arg)
 		{
 			if(need_reconnect)
 			{
-				if(xEventGroupWaitBits(xWiFiMQTTEventGroup,EVENT_WIFI_CONNECTED
-						,pdFALSE,pdFALSE,pdMS_TO_TICKS(10000))==pdFALSE)
-				{
-					continue;
-				}
+				xEventGroupWaitBits(xGlobalEventGroup,EVENT_MQTT_WIFICONNECTED,pdFALSE
+					,pdFALSE,portMAX_DELAY);
 				if(fd_ota>=0)
 				{
 					close(fd_ota);
@@ -404,7 +419,19 @@ void OTA_Task(void* arg)
 				need_reconnect = 1;
 				continue;
 			}
+			/* record download progress */
 			ota_record_download_progress(received_len);
+			/* publish download progress */
+			if(content_length != 0xFFFFFFFF && content_length > 0)
+			{
+				uint8_t percent = (uint8_t)(received_len*100/content_length);
+				Broker_Publish(TOPIC_OTA_PROGRESS,&percent);
+				HAL_IWDG_Refresh(&hiwdg);
+				vTaskDelay(pdMS_TO_TICKS(100));
+			}
+			/* judge is pause */
+			xEventGroupWaitBits(xGlobalEventGroup,EVENT_OTA_NORMALCONTROL
+						,pdFALSE,pdFALSE,portMAX_DELAY);
 		}
 		Flash_Device->SectorErase(Flash_Device,OTA_PROGRESS_ADDR&0xFFFFF000);
 		if(fd_ota >= 0)
@@ -421,22 +448,31 @@ void OTA_Task(void* arg)
 				if(OTA_Write_Flash_Flag(BOOT_FLAG_NEED_UPDATE)==1)
 				{
 					lfs_remove(&lfs, OTA_CFG_FILE);
+					
+					status=OTA_STATUS_SUCCESS;
+					Broker_Publish(TOPIC_OTA_STATUS,&status);
+					LOG_DEBUG("OTA: Download Success!");
 					/* restart */
-					LOG_DEBUG("OTA: Download Success! Rebooting in 1s...");
+					xEventGroupWaitBits(xGlobalEventGroup,EVENT_OTA_SYSTEMRESET,pdFALSE,pdTRUE,portMAX_DELAY);
+					LOG_DEBUG("Rebooting in 1s...");
 					vTaskDelay(pdMS_TO_TICKS(1000));
 					NVIC_SystemReset();
 				}
 			}
 			else
 			{
+				status=OTA_STATUS_FAILED;
+				Broker_Publish(TOPIC_OTA_STATUS,&status);
 				need_reconnect = 1;
 				LOG_DEBUG("Download Firmware check error");
-				continue;
 			}
 		}
 		else
 		{
 			LOG_DEBUG("OTA: Download Failed! Dropped.");
 		}
+		vTaskDelay(pdMS_TO_TICKS(2000));
+		status=OTA_STATUS_IDLE;
+		Broker_Publish(TOPIC_OTA_STATUS,&status);
 	}
 }

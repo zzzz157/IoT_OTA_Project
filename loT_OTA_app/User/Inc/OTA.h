@@ -9,8 +9,8 @@
 #define OTA_APP_START_ADDR 	 (OTA_DOWNLOAD+OTA_HAED_LENGTH)
 #define OTA_DOWNLOAD_REQ_LEN 1024
 
-#define APP_LOAD_ADDRESS 	 0x08040000
-#define APP_EP_ADDRESS 	 	 0x08040200
+#define APP_LOAD_ADDRESS 	 0x08020000
+#define APP_EP_ADDRESS 	 	 0x08020200
 
 #define IH_MAGIC 			 0x27051956
 #define IH_NMLEN 			 32
@@ -28,12 +28,23 @@ typedef enum
 	BOOT_FLAG_DOWNLOADING=0x66666666,
 }Boot_Flag;
 
+typedef enum
+{
+	OTA_STATUS_IDLE = 0,
+	OTA_STATUS_STARTED,
+	OTA_STATUS_DOWNLOADING,
+	OTA_STATUS_PAUSED,
+	OTA_STATUS_SUCCESS,
+	OTA_STATUS_FAILED,
+    OTA_STATUS_RESUMING,
+}OTA_Status;
+
 typedef struct {
     uint8_t ip[4];
     uint16_t port;
     char path[64];
-}OTA_Config_t;
-
+	uint8_t is_new;
+}OTA_Config;
 #pragma pack(push, 1)
 typedef struct image_header{
     uint32_t    ih_magic;       /* Image Header Magic Number    */

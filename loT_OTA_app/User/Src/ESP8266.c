@@ -134,6 +134,7 @@ int esp8266_send(int sockfd, const void *buf, size_t len, int flags)
 int esp8266_recv(int sockfd, void *buf, size_t len, int flags)
 {
 	StreamBufferHandle_t* rx_stream=Get_Stream_FromATDev(sock_esp8266,sockfd);
+	if(*rx_stream==NULL) while(1);
 	size_t rx_len=xStreamBufferReceive(*rx_stream,buf,len,pdMS_TO_TICKS(flags));
 	if(rx_len>0) return rx_len;
 	return -1;

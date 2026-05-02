@@ -32,8 +32,9 @@ volatile int g_mqtt_sockfd = -1;
 static QueueHandle_t xMQTTQue_HealthData;
 SemaphoreHandle_t g_OfflineSaveSema=NULL;
 SemaphoreHandle_t g_cjson_mutex = NULL;
+EventGroupHandle_t xGlobalEventGroup;
 /* 发布 */
-void MQTT_Public_Task(void* arg)
+void MQTT_Publish_Task(void* arg)
 {
 	g_OfflineSaveSema=xSemaphoreCreateBinary();
 	xMQTTQue_HealthData=xQueueCreate(5,sizeof(HealthData_t));
@@ -154,7 +155,7 @@ static void my_mqtt_cmd_handler(const char* payload, uint16_t len)
 			if (cjson_ip && cJSON_IsString(cjson_ip) && cjson_port && cJSON_IsNumber(cjson_port)
                 && cjson_path && cJSON_IsString(cjson_path))
 			{
-				OTA_Config_t ota_cmd;
+				OTA_Config ota_cmd;
                 int ip[4];
 				if (sscanf(cjson_ip->valuestring,"%d.%d.%d.%d",&ip[0],&ip[1],&ip[2],&ip[3])==4)
 				{
@@ -163,8 +164,9 @@ static void my_mqtt_cmd_handler(const char* payload, uint16_t len)
 					ota_cmd.ip[2]=ip[2];
 					ota_cmd.ip[3]=ip[3];
 					ota_cmd.port=cjson_port->valueint;
+					ota_cmd.is_new=1;
 					strcpy(ota_cmd.path, cjson_path->valuestring);
-					Broker_Publish(TOPIC_OTA_DATA,&ota_cmd);
+					Broker_Publish(TOPIC_OTA_REQ,&ota_cmd);
 				}
 			}
 			else
@@ -190,135 +192,144 @@ exit:
 void MQTT_Subscribe_Task(void *pvParameters)
 {
 	int fd_mqtt;
+	static uint8_t tcp_fail_count=0;
 	while(1)
     {
-		xEventGroupClearBits(xWiFiMQTTEventGroup, EVENT_WIFI_CONNECTED);
+		xEventGroupClearBits(xGlobalEventGroup, EVENT_MQTT_WIFICONNECTED);
 		g_mqtt_heartbeat = xTaskGetTickCount();
-		int result=init(&at_esp8266,g_SysParam.wifi_ssid,g_SysParam.wifi_pwd);	/* 联网 */
-		if(result != 0)
-		{
+		int result;
+		do{
+			result=init(&at_esp8266,g_SysParam.wifi_ssid,g_SysParam.wifi_pwd);	/* 联网 */
 			g_mqtt_heartbeat = xTaskGetTickCount();
-			LOG_DEBUG("ESP8266 Init Failed! Rebooting task...");
-			vTaskDelay(pdMS_TO_TICKS(3000));
-			continue;
-		}
+			if(result!=0)
+			{
+				LOG_DEBUG("WiFi Init Fail, wait 3s...");
+				vTaskDelay(pdMS_TO_TICKS(3000));
+			}
+		}while(result!=0);
 		LOG_DEBUG("init OK");
-		xEventGroupSetBits(xWiFiMQTTEventGroup, EVENT_WIFI_CONNECTED);
-        fd_mqtt = socket(AF_INET, SOCK_STREAM, 0);
-        if (fd_mqtt < 0)
+		xEventGroupSetBits(xGlobalEventGroup, EVENT_MQTT_WIFICONNECTED);
+		while(1)
 		{
-			g_mqtt_heartbeat = xTaskGetTickCount();
-			LOG_DEBUG("socket ERR");
-            vTaskDelay(pdMS_TO_TICKS(3000)); 
-            continue;
-        }
-		g_mqtt_sockfd=fd_mqtt;
-		LOG_DEBUG("socket OK");
-		
-		g_mqtt_heartbeat = xTaskGetTickCount();
-		
-        struct sockaddr_in server_addr;
-        server_addr.sin_family = AF_INET;
-        server_addr.sin_port = htons(g_SysParam.mqtt_port);
-        server_addr.sin_addr.s_addr = IP4_ADDR(g_SysParam.mqtt_ip[0],g_SysParam.mqtt_ip[1],
-			g_SysParam.mqtt_ip[2],g_SysParam.mqtt_ip[3]);
-
-        if (connect(fd_mqtt, (struct sockaddr *)&server_addr, sizeof(server_addr)) == 0)
-        {
-			LOG_DEBUG("connect OK");
-			vTaskDelay(pdMS_TO_TICKS(100));
-			char client_id[32];
-			snprintf(client_id, sizeof(client_id), "STM32_%d", xTaskGetTickCount());
-			
-            if (MQTT_Connect(fd_mqtt,client_id) > 0)
+			fd_mqtt = socket(AF_INET, SOCK_STREAM, 0);
+			if(fd_mqtt < 0)
 			{
 				g_mqtt_heartbeat = xTaskGetTickCount();
-				LOG_DEBUG("MQTT Connect Packet Sent!");
-                vTaskDelay(100);
-				MQTT_Subscribe("qrszx/command", my_mqtt_cmd_handler, fd_mqtt);
-                LOG_DEBUG("Subscribed to stm32");
-				uint8_t rx_buf[512];
-				int rx_idx=0;
-				g_mqtt_ping_waiting = 0;
-				uint32_t last_tick = xTaskGetTickCount();
-				while(1)
+				LOG_DEBUG("socket ERR");
+				continue;
+			}
+			g_mqtt_sockfd=fd_mqtt;
+			LOG_DEBUG("socket OK");
+			
+			g_mqtt_heartbeat = xTaskGetTickCount();
+			struct sockaddr_in server_addr;
+			server_addr.sin_family = AF_INET;
+			server_addr.sin_port = htons(g_SysParam.mqtt_port);
+			server_addr.sin_addr.s_addr = IP4_ADDR(g_SysParam.mqtt_ip[0],g_SysParam.mqtt_ip[1],
+				g_SysParam.mqtt_ip[2],g_SysParam.mqtt_ip[3]);
+			if (connect(fd_mqtt, (struct sockaddr *)&server_addr, sizeof(server_addr)) == 0)
+			{
+				tcp_fail_count=0;
+				LOG_DEBUG("connect OK");
+				vTaskDelay(pdMS_TO_TICKS(100));
+				char client_id[32];
+				snprintf(client_id, sizeof(client_id), "STM32_%d", xTaskGetTickCount());
+				
+				if (MQTT_Connect(fd_mqtt,client_id) > 0)
 				{
-					int len = recv(fd_mqtt, &rx_buf[rx_idx], sizeof(rx_buf)-rx_idx, 500);
 					g_mqtt_heartbeat = xTaskGetTickCount();
-					if(len>0)
+					LOG_DEBUG("MQTT Connect Packet Sent!");
+					vTaskDelay(100);
+					MQTT_Subscribe("qrszx/command", my_mqtt_cmd_handler, fd_mqtt);
+					LOG_DEBUG("Subscribed to stm32");
+					uint8_t rx_buf[512];
+					int rx_idx=0;
+					g_mqtt_ping_waiting = 0;
+					uint32_t last_tick = xTaskGetTickCount();
+					while(1)
 					{
-						rx_idx += len;
-						while(rx_idx>=2)
+						int len = recv(fd_mqtt, &rx_buf[rx_idx], sizeof(rx_buf)-rx_idx, 500);
+						g_mqtt_heartbeat = xTaskGetTickCount();
+						if(len>0)
 						{
-							uint32_t total_packet_len =Get_TotalPacket_Len(rx_buf,len);
-							if(total_packet_len>0&&total_packet_len<=rx_idx)
+							rx_idx += len;
+							while(rx_idx>=2)
 							{
-								/* 订阅消息 */
-								LOG_DEBUG("%s",rx_buf);
-								Subscribe_Callback(rx_buf, total_packet_len);
-								if((rx_idx-total_packet_len) > 0)
+								uint32_t total_packet_len =Get_TotalPacket_Len(rx_buf,rx_idx);
+								if(total_packet_len>0&&total_packet_len<=rx_idx)
 								{
-									memmove(rx_buf,&rx_buf[total_packet_len],rx_idx-total_packet_len);
+									/* 订阅消息 */
+									//LOG_DEBUG("%s",rx_buf);
+									Subscribe_Callback(rx_buf, total_packet_len);
+									if((rx_idx-total_packet_len) > 0)
+									{
+										memmove(rx_buf,&rx_buf[total_packet_len],rx_idx-total_packet_len);
+									}
+									rx_idx-=total_packet_len;
 								}
-								rx_idx-=total_packet_len;
+								else break;
 							}
-							else break;
 						}
-					}
-					/* 断连 */
-					else if (socket_status(fd_mqtt)==0)
-					{
-						LOG_DEBUG("Detect Disconnected (CLOSED URC)! Reconnecting...");
-						break;
-					}
-					uint32_t current_tick = xTaskGetTickCount();
-					if(g_mqtt_ping_waiting==1)
-					{
-						/* 心跳超时检测 */
-						if((current_tick-last_tick)>=pdMS_TO_TICKS(10000))
+						/* 断连 */
+						else if (socket_status(fd_mqtt)==0)
 						{
-							LOG_DEBUG("Ping Timeout! Network Dead. Forcing reconnect...");
+							LOG_DEBUG("Detect Disconnected (CLOSED URC)! Reconnecting...");
 							break;
 						}
-					}
-					else
-					{
-						/* ping */
-						if((current_tick-last_tick)>=pdMS_TO_TICKS(35000))
+						uint32_t current_tick = xTaskGetTickCount();
+						if(g_mqtt_ping_waiting==1)
 						{
-							MQTT_PingReq(fd_mqtt);
-							g_mqtt_ping_waiting=1;
-							last_tick = current_tick;
-							LOG_DEBUG("Send PINGREQ");
+							/* 心跳超时检测 */
+							if((current_tick-last_tick)>=pdMS_TO_TICKS(10000))
+							{
+								LOG_DEBUG("Ping Timeout! Network Dead. Forcing reconnect...");
+								break;
+							}
+						}
+						else
+						{
+							/* ping */
+							if((current_tick-last_tick)>=pdMS_TO_TICKS(35000))
+							{
+								MQTT_PingReq(fd_mqtt);
+								g_mqtt_ping_waiting=1;
+								last_tick = current_tick;
+								LOG_DEBUG("Send PINGREQ");
+							}
 						}
 					}
 				}
 			}
-        }
-        else 
-        {
-            LOG_DEBUG("connect ERR, Wait to retry...");
-        }
-		g_mqtt_heartbeat = xTaskGetTickCount();
-		g_mqtt_sockfd=-1;
-        close(fd_mqtt);
-        vTaskDelay(pdMS_TO_TICKS(3000));
-    }
+			else 
+			{
+				LOG_DEBUG("connect ERR, Wait to retry...");
+				tcp_fail_count++;
+			}
+			g_mqtt_heartbeat = xTaskGetTickCount();
+			g_mqtt_sockfd=-1;
+			close(fd_mqtt);
+			vTaskDelay(pdMS_TO_TICKS(500));
+			if(tcp_fail_count>=5) 
+			{
+				tcp_fail_count=0;
+				break;
+			}
+		}
+	}
 }
 TaskHandle_t MQTT_Subscribe_TaskHandler;
 TaskHandle_t ListenRx_TaskHandler;
-TaskHandle_t MQTT_Public_TaskHandler;
-EventGroupHandle_t xWiFiMQTTEventGroup;
+TaskHandle_t MQTT_Publish_TaskHandler;
 void MQTT_Task(void* arg)
 {
 	LOG_DEBUG("MQTT Task");
 	socket_register_device(&esp8266_net_device);  /* 注册socket */
 	My_cJSON_Hook_Init(); 	/* init cJSON hook */
 	if(g_cjson_mutex==NULL) g_cjson_mutex=xSemaphoreCreateMutex(); /* create cjson mutex */
-	xWiFiMQTTEventGroup = xEventGroupCreate();
+	xGlobalEventGroup = xEventGroupCreate();/* create global eventgroup */
 	
 	xTaskCreate(AT_Recv_Task,"AT",512,&at_esp8266,7,&ListenRx_TaskHandler);/* 监听Rx任务 */
 	xTaskCreate(MQTT_Subscribe_Task,"MQTT_Task",512,&at_esp8266,5,&MQTT_Subscribe_TaskHandler);
-	xTaskCreate(MQTT_Public_Task,"mqtt_public",512,NULL,3,&MQTT_Public_TaskHandler);
+	xTaskCreate(MQTT_Publish_Task,"mqtt_publish",512,NULL,3,&MQTT_Publish_TaskHandler);
 	vTaskDelete(NULL);
 }

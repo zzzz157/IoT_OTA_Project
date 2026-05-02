@@ -73,6 +73,11 @@ void OTA_Jump_TO_Normal_APP(uint32_t app_ep_addr)
     SysTick->LOAD = 0;
     SysTick->VAL = 0;
 	HAL_DeInit();
+	for (int i = 0; i < 8; i++) 
+	{
+		NVIC->ICER[i] = 0xFFFFFFFF;
+		NVIC->ICPR[i] = 0xFFFFFFFF;
+	}
 	start_app(app_ep_addr);
 }
 static uint8_t data[ONCE_RELOCATE_MAX_LEN];

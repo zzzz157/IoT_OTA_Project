@@ -95,6 +95,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
+	//post_build.bat "$K\ARM\ARMCC\bin\fromelf.exe" "$L@L.bin" "#L"
 	SCB->VTOR=APP_EP_ADDRESS;
 	__enable_irq();
   /* USER CODE END 1 */
@@ -127,7 +128,7 @@ int main(void)
   MX_SPI2_Init();
   MX_USART6_UART_Init();
   MX_USART2_UART_Init();
-  //MX_IWDG_Init();
+  MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
   __HAL_DBGMCU_FREEZE_IWDG();
   Broker_Init();

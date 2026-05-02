@@ -37,8 +37,8 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-#define APP_HEAD_ADDRESS 	0x08040000
-#define APP_EP_ADDRESS 		0x08040200
+#define APP_HEAD_ADDRESS 	0x08020000
+#define APP_EP_ADDRESS 		0x08020200
 
 
 /* USER CODE END PD */

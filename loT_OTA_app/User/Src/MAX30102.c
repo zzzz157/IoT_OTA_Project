@@ -104,6 +104,7 @@ void vMAX30102_AcquireTask(void* arg)
     while(1)
 	{
 		xSemaphoreTake(g_xMAX30102AcquireSemaphore_t,portMAX_DELAY);
+		g_max30102_heartbeat=xTaskGetTickCount();
 		uint32_t r, ir;
 		if (MAX30102_ReadData(&r, &ir) == HAL_OK)
 		{
