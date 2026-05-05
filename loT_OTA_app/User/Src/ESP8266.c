@@ -10,7 +10,6 @@
 static SemaphoreHandle_t g_esp_mutex = NULL;
 static AT_Device* sock_esp8266=&at_esp8266;
 static Sockaddr local_addr={.port=8181,.ip=(10<<24)|(177<<16)|(21<<8)|11};
-/* 内部分配结构体 */
 static void check_mutex(void) 
 {
     if (g_esp_mutex == NULL) 
@@ -18,6 +17,7 @@ static void check_mutex(void)
         g_esp_mutex = xSemaphoreCreateMutex();
     }
 }
+/* 内部分配结构体 */
 int esp8266_socket(int domain, int type, int protocol)
 {
 	AT_SocketType sock_type=type;

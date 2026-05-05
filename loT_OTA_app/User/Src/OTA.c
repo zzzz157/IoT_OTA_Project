@@ -346,7 +346,6 @@ void OTA_Task(void* arg)
 					LOG_DEBUG("OTA Config saved to LittleFS.");
 				}
 				Flash_Device->SectorErase(Flash_Device,OTA_PROGRESS_ADDR&0xFFFFF000);
-				
 			}
 		}
 		else 	continue;

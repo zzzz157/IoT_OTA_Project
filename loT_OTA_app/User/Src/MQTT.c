@@ -23,6 +23,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+
+//$oc/devices/{device_id}/sys/messages/up
+//$oc/devices/69f82fa318855b39c515bd1c_qrszx_01/sys/messages/up
+//$oc/devices/69f82fa318855b39c515bd1c_qrszx_01/sys/properties/report
 extern volatile uint8_t g_mqtt_ping_waiting;
 extern volatile uint32_t g_mqtt_heartbeat;
 
@@ -33,7 +37,7 @@ static QueueHandle_t xMQTTQue_HealthData;
 SemaphoreHandle_t g_OfflineSaveSema=NULL;
 SemaphoreHandle_t g_cjson_mutex = NULL;
 EventGroupHandle_t xGlobalEventGroup;
-/* 发布 */
+/* Publish */
 void MQTT_Publish_Task(void* arg)
 {
 	g_OfflineSaveSema=xSemaphoreCreateBinary();
@@ -66,18 +70,29 @@ void MQTT_Publish_Task(void* arg)
 					{
 						reset_cjson_pool();
 						cJSON* cjson_health=cJSON_CreateObject();
-						cJSON_AddStringToObject(cjson_health, "device", "stm32f407");
-						cJSON* cjson_data=cJSON_CreateObject();
-						cJSON_AddNumberToObject(cjson_data,"hr",history_data.HeartRate_Value);
-						cJSON_AddNumberToObject(cjson_data,"spo2",history_data.Spo2_Value);
-						cJSON_AddNumberToObject(cjson_data,"valid",history_data.confidence);
-						cJSON_AddItemToObject(cjson_health,"sensor",cjson_data);
-						cJSON_AddNumberToObject(cjson_health,"timestamp",history_data.timestamp_ms);
-						cJSON_AddNumberToObject(cjson_health,"history",1);
+				
+						cJSON* services = cJSON_CreateArray();
+						cJSON_AddItemToObject(cjson_health,"services",services);
+						
+						cJSON* service_obj = cJSON_CreateObject();
+						cJSON_AddItemToArray(services, service_obj);
+						
+						cJSON_AddStringToObject(service_obj, "service_id", "HealthData");
+						
+						cJSON* properties = cJSON_CreateObject();
+						cJSON_AddNumberToObject(properties,"heart_rate",history_data.HeartRate_Value);
+						cJSON_AddNumberToObject(properties,"spo2",history_data.Spo2_Value);
+						cJSON_AddNumberToObject(properties,"timestamp",mqtt_HrSpo2.timestamp_ms);
+						cJSON_AddNumberToObject(properties,"valid",history_data.confidence);
+						cJSON_AddNumberToObject(properties,"history",1);
+						cJSON_AddItemToObject(service_obj,"properties",properties);
+						
 						char* telemetry=cJSON_PrintUnformatted(cjson_health);
 						if(telemetry!=NULL)
 						{
-							MQTT_Publish(g_mqtt_sockfd,"qrszx/telemetry",telemetry);
+							MQTT_Publish(g_mqtt_sockfd
+								,"$oc/devices/69f82fa318855b39c515bd1c_qrszx_01/sys/properties/report"
+								,telemetry);
 							cJSON_free(telemetry);
 						}
 						cJSON_Delete(cjson_health);
@@ -97,20 +112,27 @@ void MQTT_Publish_Task(void* arg)
 				
 				cJSON* cjson_health=cJSON_CreateObject();
 				
-				cJSON_AddStringToObject(cjson_health, "device", "stm32f407");
+				cJSON* services = cJSON_CreateArray();
+				cJSON_AddItemToObject(cjson_health,"services",services);
 				
-				cJSON* cjson_data=cJSON_CreateObject();
-				cJSON_AddNumberToObject(cjson_data,"hr",mqtt_HrSpo2.HeartRate_Value);
-				cJSON_AddNumberToObject(cjson_data,"spo2",mqtt_HrSpo2.Spo2_Value);
-				cJSON_AddNumberToObject(cjson_data,"valid",mqtt_HrSpo2.confidence);
-				cJSON_AddItemToObject(cjson_health,"sensor",cjson_data);
-		
-				cJSON_AddNumberToObject(cjson_health,"timestamp",mqtt_HrSpo2.timestamp_ms);
+				cJSON* service_obj = cJSON_CreateObject();
+				cJSON_AddItemToArray(services, service_obj);
+				
+				cJSON_AddStringToObject(service_obj, "service_id", "HealthData");
+				
+				cJSON* properties = cJSON_CreateObject();
+				cJSON_AddNumberToObject(properties,"heart_rate",mqtt_HrSpo2.HeartRate_Value);
+				cJSON_AddNumberToObject(properties,"spo2",mqtt_HrSpo2.Spo2_Value);
+				cJSON_AddNumberToObject(properties,"timestamp",mqtt_HrSpo2.timestamp_ms);
+				cJSON_AddNumberToObject(properties,"valid",mqtt_HrSpo2.confidence);
+				cJSON_AddItemToObject(service_obj,"properties",properties);
 				
 				char* telemetry=cJSON_PrintUnformatted(cjson_health);
 				if(telemetry!=NULL)
 				{
-					MQTT_Publish(g_mqtt_sockfd,"qrszx/telemetry",telemetry);
+					MQTT_Publish(g_mqtt_sockfd
+						,"$oc/devices/69f82fa318855b39c515bd1c_qrszx_01/sys/properties/report"
+						,telemetry);
 					cJSON_free(telemetry);
 				}
 				cJSON_Delete(cjson_health);
@@ -125,14 +147,26 @@ void MQTT_Publish_Task(void* arg)
 		vTaskDelay(pdMS_TO_TICKS(3000));
 	}
 }
-/* 指定主题回调函数 */
-static void my_mqtt_cmd_handler(const char* payload, uint16_t len)
+/* Sub callback */
+static void my_mqtt_cmd_handler(const char* topic,const char* payload, uint16_t len)
 {
 	static char message[256] = {0};
     uint16_t copy_len = (len >= sizeof(message)) ? sizeof(message)-1 : len;
     memcpy(message, payload, copy_len);
     message[copy_len] = '\0';
 	LOG_DEBUG("%s",message);
+	char* req_id_ptr = strstr(topic, "request_id=");
+	if(req_id_ptr!=NULL)
+	{
+		req_id_ptr+=11;
+		static char response_topic[256];
+		snprintf(response_topic, sizeof(response_topic),
+			"$oc/devices/%s/sys/commands/response/request_id=%s"
+			,g_SysParam.mqtt_username,req_id_ptr);
+		char response_payload[] = "{\"result_code\": 0, \"response_name\": \"OTA_RESPONSE\"}";
+		MQTT_Publish(g_mqtt_sockfd, response_topic, response_payload);
+		LOG_DEBUG("Reply Sent to: %s", response_topic);
+	}
 	xSemaphoreTake(g_cjson_mutex,portMAX_DELAY);
 	reset_cjson_pool();
 	cJSON* cjson_head = cJSON_Parse(message);
@@ -141,17 +175,17 @@ static void my_mqtt_cmd_handler(const char* payload, uint16_t len)
 		LOG_DEBUG("parse fail");
 		goto exit;
 	}
-	cJSON* cjson_cmd=cJSON_GetObjectItem(cjson_head,"cmd");
+	cJSON* cjson_cmd=cJSON_GetObjectItem(cjson_head,"command_name");
 	if (cjson_cmd != NULL && cJSON_IsString(cjson_cmd))
 	{
 		/* cmd Dispatcher */
 		if (strcmp(cjson_cmd->valuestring, "OTA") == 0)
 		{
 			/* deal ota command */
-			LOG_DEBUG("Trigger OTA process");
-			cJSON* cjson_ip=cJSON_GetObjectItem(cjson_head,"ip");
-			cJSON* cjson_port=cJSON_GetObjectItem(cjson_head,"port");
-			cJSON* cjson_path=cJSON_GetObjectItem(cjson_head,"path");
+			cJSON* paras = cJSON_GetObjectItem(cjson_head,"paras");
+			cJSON* cjson_ip=cJSON_GetObjectItem(paras,"ip");
+			cJSON* cjson_port=cJSON_GetObjectItem(paras,"port");
+			cJSON* cjson_path=cJSON_GetObjectItem(paras,"path");
 			if (cjson_ip && cJSON_IsString(cjson_ip) && cjson_port && cJSON_IsNumber(cjson_port)
                 && cjson_path && cJSON_IsString(cjson_path))
 			{
@@ -159,6 +193,7 @@ static void my_mqtt_cmd_handler(const char* payload, uint16_t len)
                 int ip[4];
 				if (sscanf(cjson_ip->valuestring,"%d.%d.%d.%d",&ip[0],&ip[1],&ip[2],&ip[3])==4)
 				{
+					LOG_DEBUG("Trigger OTA process");
 					ota_cmd.ip[0]=ip[0];
 					ota_cmd.ip[1]=ip[1];
 					ota_cmd.ip[2]=ip[2];
@@ -188,7 +223,7 @@ exit:
 	cJSON_Delete(cjson_head);
 	xSemaphoreGive(g_cjson_mutex);
 }
-/* 订阅 */
+/* Subscribe */
 void MQTT_Subscribe_Task(void *pvParameters)
 {
 	int fd_mqtt;
@@ -232,17 +267,17 @@ void MQTT_Subscribe_Task(void *pvParameters)
 				tcp_fail_count=0;
 				LOG_DEBUG("connect OK");
 				vTaskDelay(pdMS_TO_TICKS(100));
-				char client_id[32];
-				snprintf(client_id, sizeof(client_id), "STM32_%d", xTaskGetTickCount());
 				
-				if (MQTT_Connect(fd_mqtt,client_id) > 0)
+				if (MQTT_Connect(fd_mqtt,g_SysParam.mqtt_client_id,g_SysParam.mqtt_username
+						,g_SysParam.mqtt_password) > 0)
 				{
 					g_mqtt_heartbeat = xTaskGetTickCount();
 					LOG_DEBUG("MQTT Connect Packet Sent!");
 					vTaskDelay(100);
-					MQTT_Subscribe("qrszx/command", my_mqtt_cmd_handler, fd_mqtt);
+					MQTT_Subscribe("$oc/devices/69f82fa318855b39c515bd1c_qrszx_01/sys/commands/#"
+						, my_mqtt_cmd_handler, fd_mqtt);
 					LOG_DEBUG("Subscribed to stm32");
-					uint8_t rx_buf[512];
+					static uint8_t rx_buf[512];
 					int rx_idx=0;
 					g_mqtt_ping_waiting = 0;
 					uint32_t last_tick = xTaskGetTickCount();
@@ -329,7 +364,7 @@ void MQTT_Task(void* arg)
 	xGlobalEventGroup = xEventGroupCreate();/* create global eventgroup */
 	
 	xTaskCreate(AT_Recv_Task,"AT",512,&at_esp8266,7,&ListenRx_TaskHandler);/* 监听Rx任务 */
-	xTaskCreate(MQTT_Subscribe_Task,"MQTT_Task",512,&at_esp8266,5,&MQTT_Subscribe_TaskHandler);
+	xTaskCreate(MQTT_Subscribe_Task,"MQTT_Task",2048,&at_esp8266,5,&MQTT_Subscribe_TaskHandler);
 	xTaskCreate(MQTT_Publish_Task,"mqtt_publish",512,NULL,3,&MQTT_Publish_TaskHandler);
 	vTaskDelete(NULL);
 }

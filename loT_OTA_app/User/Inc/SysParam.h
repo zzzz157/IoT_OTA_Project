@@ -8,13 +8,16 @@
 typedef struct {
 	uint32_t magic;
 	
-	char wifi_ssid[32];     /* WiFi 名称 */ 
-    char wifi_pwd[64];      /* WiFi 密码 */ 
+	char wifi_ssid[32];     /* WiFi 名称 */
+    char wifi_pwd[64];      /* WiFi 密码 */
 	
 	uint8_t mqtt_ip[4];     /* MQTT 服务器 IP */ 
-    uint16_t mqtt_port;     /* MQTT 服务器 端口 */ 
+    uint16_t mqtt_port;     /* MQTT 服务器 端口 */
+	char mqtt_client_id[64];	/* MQTT 客户端ID */
+	char mqtt_username[64];	/* MQTT 用户名 */
+	char mqtt_password[128];	/* MQTT 密码 */
 	
-	uint8_t modbus_id;      /* Modbus 从机地址 */ 
+	uint8_t modbus_id;      /* Modbus 从机地址 */
 	
 	uint32_t boot_count;    /* 开机次数统计 */ 
 	

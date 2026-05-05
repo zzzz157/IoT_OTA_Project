@@ -128,7 +128,7 @@ int main(void)
   MX_SPI2_Init();
   MX_USART6_UART_Init();
   MX_USART2_UART_Init();
-  MX_IWDG_Init();
+  //MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
   __HAL_DBGMCU_FREEZE_IWDG();
   Broker_Init();

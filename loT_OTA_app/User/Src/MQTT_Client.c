@@ -38,18 +38,21 @@ static int MQTT_DecodeLength(const uint8_t *buf, uint32_t *value)
     *value = len;
     return count;
 }
-int MQTT_Connect(int fd, const char* client_id)
+
+int MQTT_Connect(int fd, const char* client_id,const char* username,const char* password)
 {
-    uint8_t buf[128];
+    static uint8_t buf[128];
     int index = 0;
+	/* 1. 固定头部 */
     uint16_t client_id_len = strlen(client_id);
-    /* 0x10 表示 CONNECT 报文类型 */
-    buf[index++] = 0x10; 
-    /* 剩余长度 */
-    /*变量报头 + 客户端ID长度字段 + 客户端ID字符串长度 */
-    uint32_t remain_len = 10 + 2 + client_id_len;
+	uint16_t username_len = strlen(username);
+	uint16_t password_len = strlen(password);
+	/* 0x10 表示 CONNECT 报文类型 */
+    buf[index++] = 0x10;
+    /* 剩余长度 */	/* 变量报头 + payload_len(client_id username passward) */
+    uint32_t remain_len = 10 + (2+client_id_len) + (2+username_len) + (2+password_len);
     index += MQTT_EncodeLength(&buf[index], remain_len);
-    /* 可变报头 (Variable Header) */
+    /* 2. 可变报头 */
     /* 协议名长度 (0x0004) 和 协议名 ("MQTT") */
     buf[index++] = 0x00;
     buf[index++] = 0x04;
@@ -59,17 +62,28 @@ int MQTT_Connect(int fd, const char* client_id)
     buf[index++] = 'T';
     /* 协议级别 0x04代表MQTT v3.1.1 */
     buf[index++] = 0x04;
-    /* 连接标志 0x02表示清理会话 */
-    buf[index++] = 0x02;
+    /* 连接标志 0xC2:清理会话 username password */
+    buf[index++] = 0xC2;
     /* Keep Alive 60秒 */
     buf[index++] = 0x00;
     buf[index++] = 0x3C;
-    /* 客户端标识符长度 */
+	/* 3. 有效载荷 */
+    /* client_ID */
     buf[index++] = (client_id_len >> 8) & 0xFF;
     buf[index++] = client_id_len & 0xFF;
-    /* 客户端标识符字符串 */
     memcpy(&buf[index], client_id, client_id_len);
     index += client_id_len;
+	/* username */
+    buf[index++] = (username_len >> 8) & 0xFF;
+    buf[index++] = username_len & 0xFF;
+    memcpy(&buf[index], username, username_len);
+    index += username_len;
+	/* password */
+    buf[index++] = (password_len >> 8) & 0xFF;
+    buf[index++] = password_len & 0xFF;
+    memcpy(&buf[index], password, password_len);
+    index += password_len;
+	
     return send(fd, buf, index, 0);
 }
 int MQTT_Subscribe(const char* topic_name,MQTT_Callback_t handler,int sockfy)
@@ -122,7 +136,7 @@ int MQTT_Subscribe(const char* topic_name,MQTT_Callback_t handler,int sockfy)
 }
 int MQTT_Publish(int fd, const char* topic, const char* payload)
 {
-    uint8_t buf[512];
+    static uint8_t buf[512];
     uint16_t topic_len = strlen(topic);
     uint16_t payload_len = strlen(payload);
     int index = 0;
@@ -166,6 +180,7 @@ int Subscribe_Callback(void* rx_buf, uint16_t size)
     offset += 2;
 	if (offset + topic_len > size) return -1;
 	char* topic_ptr = (char*)&buf[offset]; /* 主题起始帧 */
+	
 	offset += topic_len;
 	if (qos > 0) /* QoS>0 报文中会多出2个字节的 Packet ID */
 	{
@@ -180,13 +195,33 @@ int Subscribe_Callback(void* rx_buf, uint16_t size)
 	MQTT_List* current_node = mqtt_list;
 	while(current_node != NULL)
 	{
-		if (strlen(current_node->mqtt_sub.topic_name) == topic_len &&
-                strncmp(current_node->mqtt_sub.topic_name, topic_ptr, topic_len) == 0)
+		int sub_len = strlen(current_node->mqtt_sub.topic_name);
+		int match = 0;
+		if (current_node->mqtt_sub.topic_name[sub_len - 1] == '#')
+		{
+			if(strncmp(current_node->mqtt_sub.topic_name,topic_ptr,sub_len-1)==0)
+			{
+				match=1;
+			}
+		}
+		else
+		{
+			if (sub_len == topic_len && 
+				strncmp(current_node->mqtt_sub.topic_name, topic_ptr, topic_len) == 0)
+			{
+				match=1;
+			}
+		}
+		if(match==1)
 		{
 			if (current_node->mqtt_sub.handler != NULL)
-            {
-                current_node->mqtt_sub.handler(payload_ptr, payload_len);
-            }
+			{
+				static char current_topic[256];
+				uint8_t cp_len=(topic_len<sizeof(current_topic))?topic_len:(sizeof(current_topic)-1);
+				memcpy(current_topic,topic_ptr,cp_len);
+				current_topic[cp_len]='\0';
+				current_node->mqtt_sub.handler(current_topic,payload_ptr, payload_len);
+			}	
 			return 0;
 		}
 		current_node = current_node->Next;

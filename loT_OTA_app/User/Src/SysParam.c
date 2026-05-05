@@ -8,6 +8,13 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
+
+char* 	 HW_CLIENT_ID = "69f82fa318855b39c515bd1c_qrszx_01_0_0_2026050405";
+char* 	 HW_USERNAME  = "69f82fa318855b39c515bd1c_qrszx_01";
+char* 	 HW_PASSWORD  = "70f6092165a6f4e54e9cfdc53e3782aec97e114e3604413ca5c93eb24b0f1d20";
+uint8_t  HW_IP[4]     =  {124,70,218,131};
+uint16_t HW_PORT      =  1883;
+
 lfs_t lfs;
 SysParam_t g_SysParam;
 extern SemaphoreHandle_t lfs_mutex;
@@ -16,14 +23,20 @@ static void Restore_Default_Params()
 {
 	memset(&g_SysParam, 0, sizeof(SysParam_t));
 	g_SysParam.magic=SYS_CFG_MAGIC;
-	g_SysParam.modbus_id=0x01;
-	g_SysParam.mqtt_ip[0]=44;
-	g_SysParam.mqtt_ip[1]=232;
-	g_SysParam.mqtt_ip[2]=241;
-	g_SysParam.mqtt_ip[3]=40;
-	g_SysParam.mqtt_port=1883;
+	
 	strcpy(g_SysParam.wifi_ssid,"www");
 	strcpy(g_SysParam.wifi_pwd,"123456789");
+	
+	g_SysParam.mqtt_ip[0]=HW_IP[0];
+	g_SysParam.mqtt_ip[1]=HW_IP[1];
+	g_SysParam.mqtt_ip[2]=HW_IP[2];
+	g_SysParam.mqtt_ip[3]=HW_IP[3];
+	g_SysParam.mqtt_port=HW_PORT;
+	strcpy(g_SysParam.mqtt_client_id, HW_CLIENT_ID);
+    strcpy(g_SysParam.mqtt_username,  HW_USERNAME);
+    strcpy(g_SysParam.mqtt_password,  HW_PASSWORD);
+	
+	g_SysParam.modbus_id=0x01;
 	g_SysParam.boot_count=0;
 }
 
