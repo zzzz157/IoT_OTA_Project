@@ -11,7 +11,6 @@
 
 char* 	 HW_CLIENT_ID = "69f82fa318855b39c515bd1c_qrszx_01_0_0_2026050405";
 char* 	 HW_USERNAME  = "69f82fa318855b39c515bd1c_qrszx_01";
-char* 	 HW_PASSWORD  = "70f6092165a6f4e54e9cfdc53e3782aec97e114e3604413ca5c93eb24b0f1d20";
 uint8_t  HW_IP[4]     =  {124,70,218,131};
 uint16_t HW_PORT      =  1883;
 
